@@ -8,7 +8,7 @@ Politecnico di Milano, 2025
 Nicolas Scalia - nicolas.scalia@mail.polimi.it
 
 ## Advisors  
-Prof. Marta Gandolla 
+Prof. Marta Gandolla   
 Andrea Dal Prete (PhD Student) 
 
 ---
@@ -25,8 +25,3 @@ This thesis focuses on improving a computer vision-based payload estimation meth
 - `data/`: Datasets  
 
 ---
-
-
-## License
-
-This project is licensed under the MIT License.  
