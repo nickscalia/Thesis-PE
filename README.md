@@ -8,8 +8,8 @@ Politecnico di Milano, 2025
 Nicolas Scalia - nicolas.scalia@mail.polimi.it
 
 ## Advisors  
-Andrea Dal Prete (PhD Student) — andrea.dalprete@polimi.it  
-Prof. Marta Gandolla — marta.gandolla@polimi.it  
+Prof. Marta Gandolla 
+Andrea Dal Prete (PhD Student) 
 
 ---
 
