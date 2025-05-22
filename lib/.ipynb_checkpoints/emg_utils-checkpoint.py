@@ -121,3 +121,19 @@ def emg_filters(muscle_emg_raw, emg_time, muscle_name):
         muscle_emg_normalized.append(normalized_emg)
 
     return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed, muscle_emg_normalized
+
+def compute_MVC(emg_signal, fs, window_ms=500):
+    window_samples = int((window_ms / 1000) * fs)
+    step = int(window_samples)
+    
+    if window_samples > len(emg_signal):
+        raise ValueError("Window is larger than signal length")
+
+    max_mean = 0
+    for start in range(0, len(emg_signal) - window_samples + 1, step):
+        window = emg_signal[start:start + window_samples]
+        window_mean = np.mean(window)
+        if window_mean > max_mean:
+            max_mean = window_mean
+
+    return max_mean
