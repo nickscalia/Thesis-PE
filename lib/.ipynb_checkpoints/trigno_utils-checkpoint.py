@@ -14,18 +14,18 @@ def trigno_dataframe_edit(df):
         pd.DataFrame: The same DataFrame with updated column names.
     """
     column_names = [
-        'EMG_Time', 'Forearm2_EMG',
-        'ACC_Time', 'Forearm2_ACC_X_G',
-        'Forearm2_ACC_Y_G', 'Forearm2_ACC_Z_G',
+        'EMG_Time', 'forearm2_EMG',
+        'ACC_Time', 'forearm2_ACC_X_G',
+        'forearm2_ACC_Y_G', 'forearm2_ACC_Z_G',
 
-        'Forearm1_EMG',
-        'Forearm1_ACC_X_G', 'Forearm1_ACC_Y_G', 'Forearm1_ACC_Z_G',
+        'forearm1_EMG',
+        'forearm1_ACC_X_G', 'forearm1_ACC_Y_G', 'forearm1_ACC_Z_G',
 
-        'Biceps_EMG',
-        'Biceps_ACC_X_G', 'Biceps_ACC_Y_G', 'Biceps_ACC_Z_G',
+        'biceps_EMG',
+        'biceps_ACC_X_G', 'biceps_ACC_Y_G', 'biceps_ACC_Z_G',
 
-        'Triceps_EMG',
-        'Triceps_ACC_X_G', 'Triceps_ACC_Y_G', 'Triceps_ACC_Z_G',
+        'triceps_EMG',
+        'triceps_ACC_X_G', 'triceps_ACC_Y_G', 'triceps_ACC_Z_G',
     ]
 
     if len(column_names) == df.shape[1]:

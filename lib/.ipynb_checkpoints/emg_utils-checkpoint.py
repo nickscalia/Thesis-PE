@@ -1,24 +1,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import ruptures as rpt
 from scipy.signal import butter, lfilter
 from libemg.feature_extractor import FeatureExtractor
 
-def plot_emg_signal(signal, time, title="Signal", xlabel="Time [s]", ylabel="mV"):
+def plot_emg_signal(signal, time, title="Signal", xlabel="Time [s]", ylabel="mV", breakpoints=None):
     """
     Plots a signal with customizable axis labels and title.
-
-    Parameters:
-        signal (array-like): The signal data to plot.
-        title (str): Plot title.
-        xlabel (str): Label for the x-axis.
-        ylabel (str): Label for the y-axis.
     """
     plt.plot(time, signal)
+    if breakpoints is not None:
+        for i, bp in enumerate(breakpoints):
+            bp_time = time[bp]
+            plt.axvline(x=bp_time, color='red', linestyle='--', label='Change point' if i == 0 else "")
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid(True)
+    if breakpoints is not None and len(breakpoints) > 0:
+        plt.legend()
     plt.show()
 
 def bandpass_filter(signal, fs, low_freq=20, high_freq=450, order=4):
@@ -68,7 +69,7 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/t
     Parameters:
         signal (np.ndarray): The EMG signal to normalize.
         muscle_name (str): The muscle name to look up the MVC value (row label in CSV).
-        mvc_csv_path (str): Path to the CSV file containing MVC values. Default set to '../data/mvc_values/trigno/combined_dataset.csv'.
+        mvc_csv_path (str): Path to the CSV file containing MVC values. Default set to '../../data/mvc_values/trigno/combined_dataset.csv'.
 
     Returns:
         np.ndarray: Normalized EMG signal.
@@ -87,41 +88,49 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/t
     
     return normalized_emg
 
-def emg_filters(muscle_emg_raw, emg_time, muscle_name):
+def emg_filters(muscle_emg_raw, emg_time, muscle_name=None):
     """
-    Applies bandpass filtering, rectification, and RMS moving smoothing
+    
+    Applies bandpass filtering, rectification, RMS moving smoothing, normalization
     to a list of raw muscle EMG signals, using their corresponding time arrays.
-
-    Parameters:
-        muscle_emg_raw (list of np.ndarray): List of raw EMG signals.
-        emg_time (list of np.ndarray): List of time vectors corresponding to each EMG signal.
-
-    Returns:
-        tuple: 
-            - muscle_emg_filtered (list of np.ndarray): Filtered EMG signals.
-            - muscle_emg_rectified (list of np.ndarray): Rectified EMG signals.
-            - muscle_emg_smoothed (list of np.ndarray): Smoothed EMG signals.
+    
     """
+    
+    if not isinstance(muscle_emg_raw, list):
+        muscle_emg_raw = [muscle_emg_raw]
+    if not isinstance(emg_time, list):
+        emg_time = [emg_time]
+    
     muscle_emg_filtered = []
     muscle_emg_rectified = []
     muscle_emg_smoothed  = []
-    muscle_emg_normalized  = []
+    muscle_emg_normalized  = [] if muscle_name else None
 
     for emg_signal, time_signal in zip(muscle_emg_raw, emg_time):
         dt = np.mean(np.diff(time_signal))
         fs = 1 / dt
 
-        filtered_emg = bandpass_filter(emg_signal, fs)
+        if fs < 900:
+            hf = fs / 2 - 1
+            filtered_emg = bandpass_filter(emg_signal, fs, high_freq = hf)
+        else: 
+            filtered_emg = bandpass_filter(emg_signal, fs)
+        
         rectified_emg = rectification(filtered_emg)
         smoothed_emg = RMS_moving(rectified_emg, fs, time_window=0.2)
-        normalized_emg = MVC_normalization(smoothed_emg, muscle_name)
 
         muscle_emg_filtered.append(filtered_emg)
         muscle_emg_rectified.append(rectified_emg)
         muscle_emg_smoothed.append(smoothed_emg)
-        muscle_emg_normalized.append(normalized_emg)
+        
+        if muscle_name:
+            normalized_emg = MVC_normalization(smoothed_emg, muscle_name)
+            muscle_emg_normalized.append(normalized_emg)
 
-    return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed, muscle_emg_normalized
+    if muscle_name:
+        return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed, muscle_emg_normalized
+    else:
+        return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed
 
 def compute_MVC(emg_signal, fs, window_ms=500):
     window_samples = int((window_ms / 1000) * fs)
@@ -217,3 +226,74 @@ def extract_emg_features(windows_list, feature_list=None, feature_group=None):
         features.append(feats)
 
     return features 
+
+def combine_multiple_features_lists(*features_dict_lists):
+    """
+    Combine multiple lists of feature dictionaries by flattening, merging,
+    and concatenating them into a single DataFrame with window indices.
+    """
+    dfs = []
+
+    # Number of lists passed
+    n_lists = len(features_dict_lists)
+
+    # Iterate over corresponding dicts from each list by index
+    for dicts_at_idx in zip(*features_dict_lists):
+        combined_features = {}
+
+        # Flatten and merge all dicts at this window index
+        for d in dicts_at_idx:
+            flat = {k: np.round(np.array(v).ravel(), 10) for k, v in d.items()}
+            combined_features.update(flat)
+
+        # Create DataFrame and add window index
+        df = pd.DataFrame(combined_features)
+        df.insert(0, 'window_idx', range(len(df)))
+
+        dfs.append(df)
+
+    # Concatenate all DataFrames into one
+    combined_df = pd.concat(dfs, ignore_index=True)
+    return combined_df
+
+def detect_segmented_breakpoints(muscle_emg_normalized, emg_time, intensity, n_bkps, plot=True):
+    """
+    Detect breakpoints on segmented EMG signals based on intensity thresholds.
+    """
+    
+    thresholds = {"light": 0.02, "medium": 0.03, "heavy": 0.05}
+    threshold = thresholds[intensity]
+
+    all_bkps_list = []
+
+    for idx, (signal, time) in enumerate(zip(muscle_emg_normalized, emg_time)):
+        valid_indices = np.where(signal > threshold)[0]
+        n_samples = valid_indices[-1] + 1 if len(valid_indices) > 0 else 0
+
+        one_third = n_samples // 3
+        two_third = 2 * n_samples // 3
+
+        segment1 = signal[:one_third]
+        bkps1 = rpt.Binseg(model="l2").fit(segment1).predict(n_bkps=n_bkps)[:-1]
+        left_bkp1 = min(bkps1) if bkps1 else 0
+        right_bkp1 = max(bkps1) if bkps1 else 0
+
+        segment2 = signal[one_third:two_third]
+        bkps2 = rpt.Binseg(model="l2").fit(segment2).predict(n_bkps=n_bkps)[:-1]
+        bkps2 = [b + one_third for b in bkps2]
+        left_bkp2 = min(bkps2) if bkps2 else one_third
+        right_bkp2 = max(bkps2) if bkps2 else one_third
+
+        segment3 = signal[two_third:]
+        bkps3 = rpt.Binseg(model="l2").fit(segment3).predict(n_bkps=n_bkps)[:-1]
+        bkps3 = [b + two_third for b in bkps3]
+        left_bkp3 = min(bkps3) if bkps3 else two_third
+        right_bkp3 = max(bkps3) if bkps3 else two_third
+
+        all_bkps = sorted([left_bkp1, right_bkp1, left_bkp2, right_bkp2, left_bkp3, right_bkp3])
+        all_bkps_list.append(all_bkps)
+        
+        if plot:
+            plot_emg_signal(signal, time, title=f"Signal {idx+1} - Change Point Detection", breakpoints=all_bkps)
+
+    return all_bkps_list
