@@ -63,6 +63,6 @@ def trigno_extract_muscle_emg(dataframes, muscle_name):
         muscle_EMG.append(emg_signal)
         EMG_Time.append(time_signal)
         
-        plot_emg_signal(emg_signal, time_signal, title=f"{muscle_name} EMG Signal #{i+1}")
+        #plot_emg_signal(emg_signal, time_signal, title=f"{muscle_name} EMG Signal #{i+1}")
     
     return muscle_EMG, EMG_Time
