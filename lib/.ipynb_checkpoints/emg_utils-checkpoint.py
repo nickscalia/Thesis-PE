@@ -7,7 +7,7 @@ from libemg.feature_extractor import FeatureExtractor
 
 def plot_emg_signal(signal, time, title="Signal", xlabel="Time [s]", ylabel="mV", breakpoints=None):
     """
-    Plots a signal with customizable axis labels and title.
+    Plots an EMG signal and optionally marks breakpoints.
     """
     plt.plot(time, signal)
     if breakpoints is not None:
@@ -24,8 +24,7 @@ def plot_emg_signal(signal, time, title="Signal", xlabel="Time [s]", ylabel="mV"
 
 def bandpass_filter(signal, fs, low_freq=20, high_freq=450, order=4):
     """
-    Applies a Butterworth bandpass filter to the input signal, allowing frequencies 
-    between low_freq and high_freq Hz to pass and attenuating frequencies outside this range.
+    Applies a Butterworth bandpass filter to the input signal.
     """
     b, a = butter(order, [low_freq, high_freq], fs=fs, btype='band')
     filtered_signal = lfilter(b, a, signal)
@@ -33,15 +32,13 @@ def bandpass_filter(signal, fs, low_freq=20, high_freq=450, order=4):
 
 def rectification(signal):
     """
-    Computes the rectified version of the input signal by taking the absolute value of each sample, 
-    effectively converting all negative values to positive.
+    Computes the rectified signal (absolute value).
     """
     return np.abs(signal)
 
 def RMS_moving(signal, fs, time_window=0.2):
     """
-    Calculates the moving Root Mean Square (RMS) of the input signal using a sliding window of specified duration (time_window in seconds). 
-    The function interpolates RMS values between windows for smoother transitions and pads the result to match the input signal length.
+    Calculates moving RMS with interpolation between windows.
     """
     window_length = int(time_window * fs)
     rms_result = []
@@ -55,7 +52,6 @@ def RMS_moving(signal, fs, time_window=0.2):
             interpolated_values = np.linspace(signal[0], rms_value, window_length)
         rms_result.extend(interpolated_values)
         
-    # Padding 
     if len(rms_result) < len(signal):
         padding_length = len(signal) - len(rms_result)
         rms_result = np.concatenate((rms_result, np.full(padding_length, rms_result[-1])))
@@ -64,15 +60,7 @@ def RMS_moving(signal, fs, time_window=0.2):
 
 def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/trigno/combined_dataset.csv'):
     """
-    Normalize the smoothed EMG signal by the MVC value read from a CSV file.
-
-    Parameters:
-        signal (np.ndarray): The EMG signal to normalize.
-        muscle_name (str): The muscle name to look up the MVC value (row label in CSV).
-        mvc_csv_path (str): Path to the CSV file containing MVC values. Default set to '../../data/mvc_values/trigno/combined_dataset.csv'.
-
-    Returns:
-        np.ndarray: Normalized EMG signal.
+    Normalizes EMG signal by MVC value from CSV file.
     """
     df = pd.read_csv(mvc_csv_path, index_col=0)
     
@@ -88,14 +76,10 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/t
     
     return normalized_emg
 
-def emg_filters(muscle_emg_raw, emg_time, muscle_name=None):
+def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_name=None):
     """
-    
-    Applies bandpass filtering, rectification, RMS moving smoothing, normalization
-    to a list of raw muscle EMG signals, using their corresponding time arrays.
-    
+    Filters, rectifies, smooths, and optionally normalizes EMG signals.
     """
-    
     if not isinstance(muscle_emg_raw, list):
         muscle_emg_raw = [muscle_emg_raw]
     if not isinstance(emg_time, list):
@@ -106,13 +90,11 @@ def emg_filters(muscle_emg_raw, emg_time, muscle_name=None):
     muscle_emg_smoothed  = []
     muscle_emg_normalized  = [] if muscle_name else None
 
-    for emg_signal, time_signal in zip(muscle_emg_raw, emg_time):
-        dt = np.mean(np.diff(time_signal))
-        fs = 1 / dt
-
+    for emg_signal, time_signal, fs in zip(muscle_emg_raw, emg_time, fs_list):
+        # Adjust high cutoff if fs < 900
         if fs < 900:
             hf = fs / 2 - 1
-            filtered_emg = bandpass_filter(emg_signal, fs, high_freq = hf)
+            filtered_emg = bandpass_filter(emg_signal, fs, high_freq=hf)
         else: 
             filtered_emg = bandpass_filter(emg_signal, fs)
         
@@ -133,6 +115,9 @@ def emg_filters(muscle_emg_raw, emg_time, muscle_name=None):
         return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed
 
 def compute_MVC(emg_signal, fs, window_ms=500):
+    """
+    Computes maximum mean amplitude in sliding windows.
+    """
     window_samples = int((window_ms / 1000) * fs)
     step = int(window_samples)
     
@@ -148,27 +133,15 @@ def compute_MVC(emg_signal, fs, window_ms=500):
 
     return max_mean
 
-def extract_emg_windows(normalized_emg_list, filtered_emg_list, emg_time_list, window_duration=0.2, overlap=0.5):
+def extract_emg_windows(normalized_emg_list, filtered_emg_list, emg_time_list, fs_list, window_duration=0.2, overlap=0.5):
     """
-    Extracts overlapping windows from lists of EMG signals and their corresponding time vectors.
-
-    Args:
-        normalized_emg_list (list of pd.DataFrame): List of normalized EMG signals.
-        filtered_emg_list (list of pd.DataFrame): List of filtered EMG signals.
-        emg_time_list (list of pd.DataFrame): List of time vectors corresponding to the EMG signals.
-        window_duration (float, optional): Window duration in seconds. Default is 0.2.
-        overlap (float, optional): Overlap between windows (between 0 and 1). Default is 0.5.
-
-    Returns:
-        tuple: Lists of normalized_windows, filtered_windows, time_windows, each containing windows for all signals.
+    Extracts overlapping windows from EMG signals and times.
     """
     normalized_windows_all = []
     filtered_windows_all = []
     time_windows_all = []
 
-    for normalized_emg, filtered_emg, time_signal in zip(normalized_emg_list, filtered_emg_list, emg_time_list):
-        dt = np.mean(np.diff(time_signal))  # Compute average time step
-        fs = 1 / dt                         # Compute sampling frequency
+    for normalized_emg, filtered_emg, time_signal, fs in zip(normalized_emg_list, filtered_emg_list, emg_time_list, fs_list):
         step_duration = window_duration * (1 - overlap)
         window_size = int(window_duration * fs)
         step_size = int(step_duration * fs)
@@ -179,13 +152,9 @@ def extract_emg_windows(normalized_emg_list, filtered_emg_list, emg_time_list, w
 
         for start in range(0, len(normalized_emg) - window_size + 1, step_size):
             end = start + window_size
-            normalized_window = normalized_emg[start:end]
-            filtered_window = filtered_emg[start:end]
-            time_window = time_signal[start:end]
-
-            normalized_windows.append(normalized_window)
-            filtered_windows.append(filtered_window)
-            time_windows.append(time_window)
+            normalized_windows.append(normalized_emg[start:end])
+            filtered_windows.append(filtered_emg[start:end])
+            time_windows.append(time_signal[start:end])
 
         normalized_windows_all.append(normalized_windows)
         filtered_windows_all.append(filtered_windows)
@@ -195,29 +164,17 @@ def extract_emg_windows(normalized_emg_list, filtered_emg_list, emg_time_list, w
 
 def extract_emg_features(windows_list, feature_list=None, feature_group=None):
     """
-    Extract EMG features from a list of EMG windows using libemg.
-    Adds file and window index, flattens feature values, and returns a single DataFrame.
-
-    Args:
-        windows_list (list of pd.DataFrame or np.ndarray): List of EMG window datasets.
-        feature_list (list of str, optional): List of features (e.g., ['MAV', 'ZC']).
-        feature_group (str, optional): Feature group name (e.g., 'HTD', 'TDS').
-
-    Returns:
-        pd.DataFrame: Combined features for all windows in all inputs.
+    Extracts EMG features from windows using libemg.
     """
     features = []
     fe = FeatureExtractor()
 
     for windows in windows_list:
-        # Convert to numpy if DataFrame
         w = windows.values if isinstance(windows, pd.DataFrame) else windows
-        # Ensure 2D array: (num_windows, window_length)
         w = np.atleast_2d(w)
         if w.ndim == 2:
-            w = w[:, np.newaxis, :]  # (num_windows, 1, num_samples)
+            w = w[:, np.newaxis, :]  # reshape to (num_windows, 1, samples)
 
-        # Extract features for all windows at once
         if feature_list:
             feats = fe.extract_features(feature_list, w)
         else:
@@ -225,75 +182,4 @@ def extract_emg_features(windows_list, feature_list=None, feature_group=None):
 
         features.append(feats)
 
-    return features 
-
-def combine_multiple_features_lists(*features_dict_lists):
-    """
-    Combine multiple lists of feature dictionaries by flattening, merging,
-    and concatenating them into a single DataFrame with window indices.
-    """
-    dfs = []
-
-    # Number of lists passed
-    n_lists = len(features_dict_lists)
-
-    # Iterate over corresponding dicts from each list by index
-    for dicts_at_idx in zip(*features_dict_lists):
-        combined_features = {}
-
-        # Flatten and merge all dicts at this window index
-        for d in dicts_at_idx:
-            flat = {k: np.round(np.array(v).ravel(), 10) for k, v in d.items()}
-            combined_features.update(flat)
-
-        # Create DataFrame and add window index
-        df = pd.DataFrame(combined_features)
-        df.insert(0, 'window_idx', range(len(df)))
-
-        dfs.append(df)
-
-    # Concatenate all DataFrames into one
-    combined_df = pd.concat(dfs, ignore_index=True)
-    return combined_df
-
-def detect_segmented_breakpoints(muscle_emg_normalized, emg_time, intensity, n_bkps, plot=True):
-    """
-    Detect breakpoints on segmented EMG signals based on intensity thresholds.
-    """
-    
-    thresholds = {"light": 0.02, "medium": 0.03, "heavy": 0.05}
-    threshold = thresholds[intensity]
-
-    all_bkps_list = []
-
-    for idx, (signal, time) in enumerate(zip(muscle_emg_normalized, emg_time)):
-        valid_indices = np.where(signal > threshold)[0]
-        n_samples = valid_indices[-1] + 1 if len(valid_indices) > 0 else 0
-
-        one_third = n_samples // 3
-        two_third = 2 * n_samples // 3
-
-        segment1 = signal[:one_third]
-        bkps1 = rpt.Binseg(model="l2").fit(segment1).predict(n_bkps=n_bkps)[:-1]
-        left_bkp1 = min(bkps1) if bkps1 else 0
-        right_bkp1 = max(bkps1) if bkps1 else 0
-
-        segment2 = signal[one_third:two_third]
-        bkps2 = rpt.Binseg(model="l2").fit(segment2).predict(n_bkps=n_bkps)[:-1]
-        bkps2 = [b + one_third for b in bkps2]
-        left_bkp2 = min(bkps2) if bkps2 else one_third
-        right_bkp2 = max(bkps2) if bkps2 else one_third
-
-        segment3 = signal[two_third:]
-        bkps3 = rpt.Binseg(model="l2").fit(segment3).predict(n_bkps=n_bkps)[:-1]
-        bkps3 = [b + two_third for b in bkps3]
-        left_bkp3 = min(bkps3) if bkps3 else two_third
-        right_bkp3 = max(bkps3) if bkps3 else two_third
-
-        all_bkps = sorted([left_bkp1, right_bkp1, left_bkp2, right_bkp2, left_bkp3, right_bkp3])
-        all_bkps_list.append(all_bkps)
-        
-        if plot:
-            plot_emg_signal(signal, time, title=f"Signal {idx+1} - Change Point Detection", breakpoints=all_bkps)
-
-    return all_bkps_list
+    return features

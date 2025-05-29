@@ -5,13 +5,7 @@ from emg_utils import plot_emg_signal
 
 def trigno_dataframe_edit(df):
     """
-    Assigns standard column names to a DataFrame acquired from the Trigno system.
-
-    Parameters:
-        df (pd.DataFrame): The DataFrame to be renamed.
-
-    Returns:
-        pd.DataFrame: The same DataFrame with updated column names.
+    Rename columns of a Trigno system DataFrame.
     """
     column_names = [
         'EMG_Time', 'forearm2_EMG',
@@ -35,19 +29,7 @@ def trigno_dataframe_edit(df):
 
 def trigno_extract_muscle_emg(dataframes, muscle_name):
     """
-    Extracts 'Muscle_EMG' and 'EMG_Time' from a list of DataFrames,
-    plots each Muscle EMG signal,
-    and returns the extracted data as two lists of numpy arrays.
-
-    Parameters:
-        dataframes (list of pd.DataFrame): List of input DataFrames.
-        plot_emg_signal: Function to plot a single EMG signal. 
-                         Must accept parameters (signal, title).
-
-    Returns:
-        tuple: (Muscle_EMG, EMG_Time)
-            Muscle_EMG (list of np.ndarray): List of Muscle EMG signals.
-            EMG_Time (list of np.ndarray): List of corresponding time arrays.
+    Extract specified muscle EMG and EMG time from DataFrames.
     """
     emg_col = f"{muscle_name}_EMG"
     muscle_EMG = []
