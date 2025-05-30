@@ -76,40 +76,41 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/t
     
     return normalized_emg
 
-def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_name=None):
+def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_names=None):
     """
     Filters, rectifies, smooths, and optionally normalizes EMG signals.
     """
-    if not isinstance(muscle_emg_raw, list):
-        muscle_emg_raw = [muscle_emg_raw]
-    if not isinstance(emg_time, list):
-        emg_time = [emg_time]
-    
-    muscle_emg_filtered = []
-    muscle_emg_rectified = []
-    muscle_emg_smoothed  = []
-    muscle_emg_normalized  = [] if muscle_name else None
+    # Use keys from input if muscle_names is None (when dealing with MVC signal)
+    if muscle_names is None:
+        muscle_names = list(muscle_emg_raw.keys())
+        apply_normalization = False
+    else:
+        apply_normalization = True
 
-    for emg_signal, time_signal, fs in zip(muscle_emg_raw, emg_time, fs_list):
-        # Adjust high cutoff if fs < 900
-        if fs < 900:
-            hf = fs / 2 - 1
+    # Initialize output dictionaries
+    muscle_emg_filtered = {muscle: [] for muscle in muscle_names}
+    muscle_emg_rectified = {muscle: [] for muscle in muscle_names}
+    muscle_emg_smoothed = {muscle: [] for muscle in muscle_names}
+    muscle_emg_normalized = {muscle: [] for muscle in muscle_names} if apply_normalization else None
+
+    for i, (time_signal, fs) in enumerate(zip(emg_time, fs_list)):
+        for muscle in muscle_names:
+            emg_signal = muscle_emg_raw[muscle][i]
+
+            hf = fs / 2 - 1 if fs < 900 else 450
             filtered_emg = bandpass_filter(emg_signal, fs, high_freq=hf)
-        else: 
-            filtered_emg = bandpass_filter(emg_signal, fs)
-        
-        rectified_emg = rectification(filtered_emg)
-        smoothed_emg = RMS_moving(rectified_emg, fs, time_window=0.2)
+            rectified_emg = rectification(filtered_emg)
+            smoothed_emg = RMS_moving(rectified_emg, fs, time_window=0.2)
 
-        muscle_emg_filtered.append(filtered_emg)
-        muscle_emg_rectified.append(rectified_emg)
-        muscle_emg_smoothed.append(smoothed_emg)
-        
-        if muscle_name:
-            normalized_emg = MVC_normalization(smoothed_emg, muscle_name)
-            muscle_emg_normalized.append(normalized_emg)
+            muscle_emg_filtered[muscle].append(filtered_emg)
+            muscle_emg_rectified[muscle].append(rectified_emg)
+            muscle_emg_smoothed[muscle].append(smoothed_emg)
 
-    if muscle_name:
+            if apply_normalization:
+                normalized_emg = MVC_normalization(smoothed_emg, muscle)
+                muscle_emg_normalized[muscle].append(normalized_emg)
+
+    if apply_normalization:
         return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed, muscle_emg_normalized
     else:
         return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed
@@ -120,7 +121,7 @@ def compute_MVC(emg_signal, fs, window_ms=500):
     """
     window_samples = int((window_ms / 1000) * fs)
     step = int(window_samples)
-    
+  
     if window_samples > len(emg_signal):
         raise ValueError("Window is larger than signal length")
 
@@ -133,53 +134,65 @@ def compute_MVC(emg_signal, fs, window_ms=500):
 
     return max_mean
 
-def extract_emg_windows(normalized_emg_list, filtered_emg_list, emg_time_list, fs_list, window_duration=0.2, overlap=0.5):
+def extract_emg_windows(normalized_emg_dict, filtered_emg_dict, emg_time_list, fs_list, window_duration=0.2, overlap=0.5):
     """
     Extracts overlapping windows from EMG signals and times.
     """
-    normalized_windows_all = []
-    filtered_windows_all = []
+    normalized_windows_all = {muscle: [] for muscle in normalized_emg_dict}
+    filtered_windows_all = {muscle: [] for muscle in filtered_emg_dict}
     time_windows_all = []
 
-    for normalized_emg, filtered_emg, time_signal, fs in zip(normalized_emg_list, filtered_emg_list, emg_time_list, fs_list):
+    for i, (time_signal, fs) in enumerate(zip(emg_time_list, fs_list)):
         step_duration = window_duration * (1 - overlap)
         window_size = int(window_duration * fs)
         step_size = int(step_duration * fs)
 
-        normalized_windows = []
-        filtered_windows = []
         time_windows = []
-
-        for start in range(0, len(normalized_emg) - window_size + 1, step_size):
+        for start in range(0, len(time_signal) - window_size + 1, step_size):
             end = start + window_size
-            normalized_windows.append(normalized_emg[start:end])
-            filtered_windows.append(filtered_emg[start:end])
             time_windows.append(time_signal[start:end])
-
-        normalized_windows_all.append(normalized_windows)
-        filtered_windows_all.append(filtered_windows)
         time_windows_all.append(time_windows)
+
+        for muscle in normalized_emg_dict:
+            norm_emg = normalized_emg_dict[muscle][i]
+            filt_emg = filtered_emg_dict[muscle][i]
+
+            norm_windows = [norm_emg[start:start+window_size] for start in range(0, len(norm_emg) - window_size + 1, step_size)]
+            filt_windows = [filt_emg[start:start+window_size] for start in range(0, len(filt_emg) - window_size + 1, step_size)]
+
+            normalized_windows_all[muscle].append(norm_windows)
+            filtered_windows_all[muscle].append(filt_windows)
 
     return normalized_windows_all, filtered_windows_all, time_windows_all
 
-def extract_emg_features(windows_list, feature_list=None, feature_group=None):
+def extract_emg_features(windows_dict, feature_list=None, feature_group=None):
     """
     Extracts EMG features from windows using libemg.
     """
-    features = []
     fe = FeatureExtractor()
+    trial_count = len(next(iter(windows_dict.values())))  # Number of trials
 
-    for windows in windows_list:
-        w = windows.values if isinstance(windows, pd.DataFrame) else windows
-        w = np.atleast_2d(w)
-        if w.ndim == 2:
-            w = w[:, np.newaxis, :]  # reshape to (num_windows, 1, samples)
+    all_features = []
 
-        if feature_list:
-            feats = fe.extract_features(feature_list, w)
-        else:
-            feats = fe.extract_feature_group(feature_group, w)
+    for trial_idx in range(trial_count):
+        feature_dfs = []
+        
+        for muscle, trials in windows_dict.items():
+            windows = trials[trial_idx]
+            w = np.atleast_2d(windows)
+            if w.ndim == 2:
+                w = w[:, np.newaxis, :]  # reshape to (num_windows, 1, samples)
 
-        features.append(feats)
+            if feature_list:
+                feats = fe.extract_features(feature_list, w)
+                df = pd.DataFrame({f"{k}_{muscle}": np.ravel(v) for k,v in feats.items()})
+            else:
+                feats = fe.extract_feature_group(feature_group, w)
+                df = pd.DataFrame({f"{k}_{muscle}": np.ravel(v) for k,v in feats.items()})
 
-    return features
+            feature_dfs.append(df)
+        
+        combined_df = pd.concat(feature_dfs, axis=1)
+        all_features.append(combined_df)
+
+    return all_features

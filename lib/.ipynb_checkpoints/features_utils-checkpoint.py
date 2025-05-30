@@ -5,7 +5,7 @@ from emg_utils import plot_emg_signal
 
 def combine_multiple_features_lists(*features_dict_lists):
     """
-    Combine multiple lists of feature dictionaries by flattening, merging,
+    Combine multiple lists of feature dictionaries by merging,
     and concatenating them into a single DataFrame with window indices.
     """
     dfs = []
@@ -16,8 +16,7 @@ def combine_multiple_features_lists(*features_dict_lists):
         combined_features = {}
 
         for feature_dict in dicts_at_idx:
-            # Flatten arrays and round values for numerical stability
-            flat = {k: np.round(np.array(v).ravel(), 10) for k, v in feature_dict.items()}
+            flat = {k: np.array(v) for k, v in feature_dict.items()}
             combined_features.update(flat)  # Merge features from all dicts at this index
 
         df = pd.DataFrame(combined_features)  # Create DataFrame for combined features
@@ -26,8 +25,24 @@ def combine_multiple_features_lists(*features_dict_lists):
         dfs.append(df)
 
     combined_df = pd.concat(dfs, ignore_index=True)  # Concatenate all window DataFrames
-    return combined_df
+    
+    # Reorder columns to group by muscle suffix (e.g. _biceps, _triceps)
+    # Exclude 'window_idx' from sorting, keep it first
+    cols = combined_df.columns.drop('window_idx')
 
+    # Extract unique muscle suffixes from columns names
+    suffixes = sorted(set(col.split('_')[-1] for col in cols))
+
+    reordered_cols = ['window_idx']  # Start with window_idx
+
+    for suffix in suffixes:
+        # Add all columns ending with the suffix
+        suffix_cols = [col for col in cols if col.endswith(f"_{suffix}")]
+        reordered_cols.extend(sorted(suffix_cols))  # Optional: sort alphabetically inside group
+
+    combined_df = combined_df[reordered_cols]
+
+    return combined_df
 
 def detect_segments(normalized_signals, time_vectors, intensity_level, n_lifts, plot=True):
     """
