@@ -12,30 +12,31 @@ def myo_dataframe_edit(df):
     Returns:
         pd.DataFrame: The same DataFrame with updated column names.
     """
-    column_names = ['Channel_1', 'Channel_2', 'Channel_3', 'Channel_4', 'Channel_5', 'Channel_6', 'Channel_7', 'Channel_8']
+    column_names = ['channel_1', 'channel_2', 'channel_3', 'channel_4', 'channel_5', 'channel_6', 'channel_7', 'channel_8']
 
     if len(column_names) == df.shape[1]:
         df.columns = column_names
 
     return df
 
-"""def myo_extract_muscle_emg(dataframes, channel_number):
-    Extracts 'Channel_number' from a list of DataFrames, compute 'emg_time' knowning Myo frequency,
-    and returns the extracted data as two lists of numpy arrays.
-    emg_col = f"Channel_{channel_number}"
-    channel_EMG = []
+def myo_extract_muscle_emg(dataframes, channel_names, fs):
+    """
+    Extract specified channel EMG and EMG time from DataFrames.
+    """
+    muscle_EMG_dict = {channel: [] for channel in channel_names}
     EMG_Time = []
 
     for i, df in enumerate(dataframes):
-        if emg_col not in df.columns:
-            raise ValueError(f"Columns '{emg_col}' not found in DataFrame {i}")
-        
-        emg_signal = df[emg_col].to_numpy()
-        time_signal = df['EMG_Time'].to_numpy()
-        
-        muscle_EMG.append(emg_signal)
+        num_samples = len(df)
+        time_signal = np.arange(num_samples) / fs
         EMG_Time.append(time_signal)
         
-        #plot_emg_signal(emg_signal, time_signal, title=f"Channel_{channel_number} EMG Signal #{i+1}")
-    
-    return muscle_EMG, EMG_Time"""
+        for channel in channel_names:
+            emg_col = f"{channel}"
+            if emg_col not in df.columns:
+                raise ValueError(f"Column '{emg_col}' not found in DataFrame {i}")
+            
+            emg_signal = df[emg_col].to_numpy()
+            muscle_EMG_dict[channel].append(emg_signal)
+
+    return muscle_EMG_dict, EMG_Time

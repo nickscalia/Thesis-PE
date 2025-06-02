@@ -21,3 +21,19 @@ def import_data_from_trigno(folder_path):
         dataframes.append(df)
 
     return dataframes
+
+def import_data_from_myo(folder_path):
+    """
+    Import EMG data from Myo CSV files in a folder.
+    """
+    # List CSV files in folder
+    csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv')]
+    dataframes = []
+
+    for file in csv_files:
+        file_path = os.path.join(folder_path, file)
+        df = pd.read_csv(file_path, header=None)
+        df = df.iloc[:, 1:]
+        dataframes.append(df)
+
+    return dataframes

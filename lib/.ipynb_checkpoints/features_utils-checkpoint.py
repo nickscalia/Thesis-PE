@@ -95,7 +95,7 @@ def detect_segments(normalized_signals, time_vectors, intensity_level, n_lifts, 
         all_breakpoints_list.append(all_bkps)
 
         if plot:
-            plot_emg_signal(signal, time, title=f"Signal {idx+1} - Change Point Detection", ylabel='%MVC', breakpoints=all_bkps)
+            plot_emg_signal(signal, time, title=f"Signal {idx+1} - Change Point Detection", ylabel='EMG / MVC', breakpoints=all_bkps)
 
     return all_breakpoints_list
 

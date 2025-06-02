@@ -58,7 +58,7 @@ def RMS_moving(signal, fs, time_window=0.2):
 
     return rms_result
 
-def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/trigno/combined_dataset.csv'):
+def MVC_normalization(signal, muscle_name, mvc_csv_path):
     """
     Normalizes EMG signal by MVC value from CSV file.
     """
@@ -76,7 +76,7 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path='../../data/mvc_values/t
     
     return normalized_emg
 
-def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_names=None):
+def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_names=None, mvc_csv_path='../../data/mvc_values/trigno/S01_05_14/combined_dataset.csv'):
     """
     Filters, rectifies, smooths, and optionally normalizes EMG signals.
     """
@@ -100,14 +100,13 @@ def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_names=None):
             hf = fs / 2 - 1 if fs < 900 else 450
             filtered_emg = bandpass_filter(emg_signal, fs, high_freq=hf)
             rectified_emg = rectification(filtered_emg)
-            smoothed_emg = RMS_moving(rectified_emg, fs, time_window=0.2)
-
+            smoothed_emg = RMS_moving(rectified_emg, fs)
             muscle_emg_filtered[muscle].append(filtered_emg)
             muscle_emg_rectified[muscle].append(rectified_emg)
             muscle_emg_smoothed[muscle].append(smoothed_emg)
 
             if apply_normalization:
-                normalized_emg = MVC_normalization(smoothed_emg, muscle)
+                normalized_emg = MVC_normalization(smoothed_emg, muscle, mvc_csv_path)
                 muscle_emg_normalized[muscle].append(normalized_emg)
 
     if apply_normalization:
@@ -115,11 +114,11 @@ def emg_filters(muscle_emg_raw, emg_time, fs_list, muscle_names=None):
     else:
         return muscle_emg_filtered, muscle_emg_rectified, muscle_emg_smoothed
 
-def compute_MVC(emg_signal, fs, window_ms=500):
+def compute_MVC(emg_signal, fs, window=0.5):
     """
     Computes maximum mean amplitude in sliding windows.
     """
-    window_samples = int((window_ms / 1000) * fs)
+    window_samples = int(window * fs)
     step = int(window_samples)
   
     if window_samples > len(emg_signal):
@@ -170,6 +169,7 @@ def extract_emg_features(windows_dict, feature_list=None, feature_group=None):
     Extracts EMG features from windows using libemg.
     """
     fe = FeatureExtractor()
+    
     trial_count = len(next(iter(windows_dict.values())))  # Number of trials
 
     all_features = []
