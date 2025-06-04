@@ -50,3 +50,33 @@ def trigno_extract_muscle_emg(dataframes, muscle_names):
             muscle_EMG_dict[muscle].append(emg_signal)
 
     return muscle_EMG_dict, EMG_Time
+
+def trigno_extract_muscle_acc(dataframes, muscle_names, axes=["X", "Y", "Z"]):
+    """
+    Extract specified muscle accelerations (X, Y, Z) and ACC time from DataFrames.
+    """
+    # Initialize nested dictionary
+    muscle_ACC_dict = {
+        muscle: {axis: [] for axis in axes} for muscle in muscle_names
+    }
+    ACC_Time = []
+
+    for i, df in enumerate(dataframes):
+        df = df.copy()  # evita slice ambigui
+        df['ACC_Time'] = df['ACC_Time'].astype(str).str.strip()
+        df_clean = df[df['ACC_Time'] != '']
+        time_signal = df_clean['ACC_Time'].astype(float).to_numpy()
+        ACC_Time.append(time_signal)
+
+        for muscle in muscle_names:
+            for axis in axes:
+                acc_col = f"{muscle}_ACC_{axis}_G"
+                if acc_col not in df_clean.columns:
+                    raise ValueError(f"Column '{acc_col}' not found in DataFrame {i}")
+
+                df_clean.loc[:, acc_col] = df_clean[acc_col].astype(str).str.strip()
+                df_valid = df_clean[df_clean[acc_col] != '']
+                acc_signal = df_valid[acc_col].astype(float).to_numpy()
+                muscle_ACC_dict[muscle][axis].append(acc_signal)
+
+    return muscle_ACC_dict, ACC_Time
