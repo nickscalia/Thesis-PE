@@ -1,0 +1,33 @@
+Test Set,Model,Accuracy,Precision,Recall,F1 Score,Training Time (s),Inference Time (ms)
+Myo + Trigno - EMG + IMU Selected Features,SVM,98.2,98.2,98.2,98.19,4.7952,2.2748
+Myo + Trigno - EMG + IMU Selected Features,GB,98.2,98.2,98.2,98.2,29.9274,1.7136
+Myo + Trigno - EMG + IMU Selected Features,RF,97.03,97.03,97.03,97.02,0.1191,16.7298
+Myo + Trigno - EMG + IMU Selected Features,MLP,96.55,96.54,96.55,96.54,0.9239,0.7411
+Myo + Trigno - EMG + IMU Selected Features,Logistic Regression,96.55,96.56,96.55,96.55,0.0999,0.6485
+Myo + Trigno - EMG + IMU Selected Features,KNN,96.02,96.01,96.02,96.01,0.0052,1.6015
+Myo + Trigno - EMG + IMU Selected Features,AdaBoost,94.06,94.12,94.06,94.08,2.6863,2.5702
+Myo + Trigno - EMG + IMU Selected Features,NB,89.02,89.68,89.02,89.16,0.0164,1.997
+Myo + Trigno - EMG Selected Features,GB,96.82,96.82,96.82,96.81,19.2868,1.3102
+Myo + Trigno - EMG Selected Features,Logistic Regression,95.76,95.76,95.76,95.75,0.0582,0.3652
+Myo + Trigno - EMG Selected Features,RF,95.65,95.65,95.65,95.64,0.0955,16.5491
+Myo + Trigno - EMG Selected Features,SVM,95.49,95.45,95.49,95.46,2.3474,1.0317
+Myo + Trigno - EMG Selected Features,MLP,95.44,95.43,95.44,95.43,1.598,0.3996
+Myo + Trigno - EMG Selected Features,AdaBoost,94.11,94.43,94.11,94.16,0.8684,2.2161
+Myo + Trigno - EMG Selected Features,KNN,93.95,93.96,93.95,93.95,0.0025,1.1289
+Myo + Trigno - EMG Selected Features,NB,93.16,93.26,93.16,93.19,0.0156,1.3394
+Myo + Trigno - IMU Selected Features,GB,90.19,90.06,90.19,90.0,24.9293,1.4665
+Myo + Trigno - IMU Selected Features,KNN,85.36,85.15,85.36,85.18,0.002,1.3468
+Myo + Trigno - IMU Selected Features,SVM,83.24,82.87,83.24,82.98,3.6982,0.6715
+Myo + Trigno - IMU Selected Features,MLP,82.97,83.0,82.97,82.89,0.7673,0.4416
+Myo + Trigno - IMU Selected Features,RF,82.76,83.08,82.76,81.82,0.1195,16.7567
+Myo + Trigno - IMU Selected Features,Logistic Regression,75.49,77.42,75.49,76.2,0.0812,0.4294
+Myo + Trigno - IMU Selected Features,AdaBoost,71.62,69.83,71.62,70.1,1.285,2.2131
+Myo + Trigno - IMU Selected Features,NB,50.45,62.89,50.45,52.62,0.0075,1.8477
+Myo + Trigno - PCA Features,SVM,98.14,98.14,98.14,98.14,1.4468,0.1459
+Myo + Trigno - PCA Features,MLP,97.67,97.66,97.67,97.66,1.0411,0.0451
+Myo + Trigno - PCA Features,Logistic Regression,97.4,97.41,97.4,97.4,0.0715,0.0253
+Myo + Trigno - PCA Features,KNN,96.07,96.1,96.07,96.08,0.001,0.5598
+Myo + Trigno - PCA Features,GB,95.92,95.89,95.92,95.88,38.1865,0.7781
+Myo + Trigno - PCA Features,RF,89.39,89.95,89.39,88.98,0.1589,16.4867
+Myo + Trigno - PCA Features,AdaBoost,83.13,85.77,83.13,82.45,3.2224,1.7787
+Myo + Trigno - PCA Features,NB,60.42,71.55,60.42,62.29,0.0115,0.3148

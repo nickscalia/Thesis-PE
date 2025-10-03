@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+**/.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temp and debug files
+**/temp/
+**/debug/
+
+# Large and private files
+dataset_*
+**/people.txt
