@@ -2,7 +2,6 @@ Dataset Organization
 This repository contains data organized from various acquisition sessions using different devices. Below is an overview of the folder structure and naming conventions used:
 
 Folder Structure
-_media/: Contains videos recorded during the acquisition sessions.
 myo/: Contains acquisition data collected using the Myo armband.
 trigno/: Contains acquisition data collected using the Delsys Trigno system.
 
@@ -24,6 +23,3 @@ SXX = Subject identifier (e.g., S01, S02, ...)
 A, H, M, L, X = Task intensity: All, Heavy, Medium, Light, MVC measurement
 01, 02, ... = Acquisition number for that specific subject and intensity level
 O, BC, TC, FA1, FA2 = Additional Letter: Motion, Biceps, Triceps, Forearm 1, Forearm 2
-
-Subjects:
-01 -> Nicolas

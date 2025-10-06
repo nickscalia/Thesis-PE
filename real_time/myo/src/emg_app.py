@@ -308,7 +308,7 @@ class EMGApp:
                 self.imu_scalers.append(scaler_temp)
             imu_scaler_path = os.path.join(self.cali_folder_i, "imu_scalers.pkl")
             norm_path = os.path.join(self.cali_folder_i, "norm_values.csv")
-            norm_df = pd.DataFrame(list(self.norm_values.items()), columns=["Channel", "Norm_Value"])
+            norm_df = pd.DataFrame(list(self.norm_values.items()), columns=["", "MVC"])
             norm_df.to_csv(norm_path, index=False)
             with open(imu_scaler_path, 'wb') as f:
                 pickle.dump(self.imu_scalers, f)
@@ -347,7 +347,6 @@ class EMGApp:
         imu_filt = np.zeros((self.window_size, 6))
         window_feature_size = 40 # Dimension of window size onto which the feature is computed
         self.raw_emg_data = []  
-        self.norm_emg_data = []  
         self.raw_imu_data = []
         all_predictions = [] # Stores predicted classes
         all_probabilities = [] # Stores class probabilities
@@ -433,7 +432,6 @@ class EMGApp:
                         emg_norm[-n:, ch] = emg_norm_filtered[-n:]
                             
                     self.raw_emg_data.append(curr_new)          
-                    self.norm_emg_data.append(emg_norm[-n:, :]) 
 
                     # Update Live Plot   
                     t0 = (sample_counter - self.window_size) / self.fs
@@ -610,13 +608,10 @@ class EMGApp:
 
             emg_raw_all = np.vstack(self.raw_emg_data)
             imu_raw_all = np.vstack(self.raw_imu_data)
-            emg_norm_all = np.vstack(self.norm_emg_data)
             combined_data = np.hstack((emg_raw_all, imu_raw_all))
             columns = self.channel_names + self.imu_names
             df_data = pd.DataFrame(combined_data, columns=columns)
-            df_data.to_csv(os.path.join(self.est_folder_i, "raw_emg_imu.csv"), index=False)
-            df_emg_norm = pd.DataFrame(emg_norm_all, columns=self.channel_names)
-            df_emg_norm.to_csv(os.path.join(self.est_folder_i, "emg_norm.csv"), index=False)        
+            df_data.to_csv(os.path.join(self.est_folder_i, "raw_emg_imu.csv"), index=False)      
             self.interrupt_flag = False
             with open(os.path.join(self.est_folder_i, "metadata.json"), "w") as f:
                 json.dump(metadata, f, indent=4)

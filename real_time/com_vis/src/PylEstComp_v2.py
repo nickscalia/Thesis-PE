@@ -39,11 +39,11 @@ import os
                                                 # rest on GPU.  (Only mac)
 
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 import time
 import pandas as pd
 from torchvision import transforms
+from datetime import datetime
 import torch
 import warnings
 warnings.filterwarnings("ignore") # ignore warnings 
@@ -55,11 +55,14 @@ import socket
 from NeuralNetwork_architectures_Pytorch import get_customizedDINOv2
 
 # data path
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 base_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
 grandparent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
 input_dir = os.path.join(grandparent_dir, "shared", "temp") # these are the information collected and stored in the local folder by the "object detection and selection module".
 model_path = os.path.join(parent_dir, "models", "CustomDino_models", "customized_DINOv2_v6grayscale_small.pth")
+log_dir = os.path.join(parent_dir, 'data', timestamp)
+log_file = os.path.join(log_dir, 'realtime_log.csv')
 
 #%% ### Load data
 # define load data function
@@ -154,9 +157,16 @@ client_socket.connect((HOST, PORT))
 
 # initialie the variables 
 classification_output6 = torch.tensor(([1,0,0])).to(device)
+log_dir_created = False 
 
 # Start the while loop for real-time inference 
 while True:
+    if not log_dir_created: 
+        os.makedirs(log_dir, exist_ok=True)
+        log_dir_created = True 
+        df_init = pd.DataFrame(columns=['proc_time_ms', 'gate_cv', 'gate_myo', 'response', 'model_output', 'myo_output'])
+        df_init.to_csv(log_file, index=False)
+
     start = time.time()
     detected_class = 'object'
     # load candidate and 3D shape generation
@@ -180,22 +190,54 @@ while True:
         model_output = np.argmax(model_output.cpu().numpy())
         display_outputs(detected_class, model_output, myo_output)
 
+        response = model_output
         if myo_output != 4 and myo_output != model_output:
             print("Model and Myo output are different! Sending Myo prediction to raspi.")
-            model_output = myo_output
+            response = myo_output
             time.sleep(0.2)
 
         # Send a response back to the client
-        response = str(model_output)
+        response = str(response)
         print('response: ' + response)
         client_socket.sendall(response.encode('utf-8'))
-        plt.pause(0.01)
+
+        processing_time = round(1000*(time.time()-start),2)
+        log_entry = pd.DataFrame([{
+            'proc_time_ms': processing_time,
+            'gate_cv': gate,
+            'gate_myo': gate_myo,
+            'response': response,
+            'model_output': model_output,
+            'myo_output': myo_output,
+        }])
+        log_entry.to_csv(log_file, mode='a', index=False, header=False)
+
     except TypeError:
         print('\nWarning: No disposable data for now. Waiting...\n')
+        log_entry = pd.DataFrame([{
+            'proc_time_ms': np.nan,
+            'gate_cv': np.nan,
+            'gate_myo': np.nan,
+            'response': np.nan,
+            'model_output': np.nan,
+            'myo_output': np.nan
+        }])
+        log_entry.to_csv(log_file, mode='a', index=False, header=False)
+
         time.sleep(1.5)
         continue
     except AttributeError:
         print('\nWarning: No disposable data for now. Waiting...\n')
+        log_entry = pd.DataFrame([{
+            'proc_time_ms': np.nan,
+            'gate_cv': np.nan,
+            'gate_myo': np.nan,
+            'response': np.nan,
+            'model_output': np.nan,
+            'myo_output': np.nan
+        }])
+        log_entry.to_csv(log_file, mode='a', index=False, header=False)
+
         time.sleep(1.5)
         continue
-    print('\n\nProcessing time: ', round(1000*(time.time()-start),2), 'ms')
+    print('\n\nProcessing time: ', processing_time, 'ms')

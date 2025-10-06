@@ -13,6 +13,7 @@ __pycache__/
 # Temp and debug files
 **/temp/
 **/debug/
+**/_old/
 
 # Large and private files
 dataset_*
