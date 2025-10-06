@@ -9,7 +9,7 @@ Nicolas Scalia - nicolas.scalia@mail.polimi.it
 
 ## Advisors  
 Prof. Marta Gandolla   
-Andrea Dal Prete (PhD Student) 
+Eng. Andrea Dal Prete (PhD Student) 
 
 ---
 
