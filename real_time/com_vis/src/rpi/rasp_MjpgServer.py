@@ -1,19 +1,38 @@
-import cv2
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from threading import Thread
-import time
+# -----------------------------------------------------------------------------
+# Copyright (c) 2025 Nicolas Scalia - Politecnico di Milano
+# All rights reserved.
+#
+# This script is part of the research published in:
+# [Your Paper Title], [Conference/Journal Name], [Year]
+# DOI: [Insert DOI if available]
+#
+# Author: Nicolas Scalia (nicolas.scalia@mail.polimi.it)
+# -----------------------------------------------------------------------------
 
-# Config
+#%% CODE EXPLAINATION 
+# This script captures video from a webcam, converts it to grayscale, and streams it via MJPEG over HTTP.
+# Uses OpenCV for frame capture and processing, and http.server to serve frames to clients.
+# Controls the frame rate with frame_duration and sends each frame as a multipart JPEG image.
+
+# import libraries 
+import cv2
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# configuration
+HOST = '192.168.52.43' 
 PORT = 8000
 DEVICE = 1
-frame_duration=0.1
+frame_duration = 0.1
 
+# initialize webcam
 cap = cv2.VideoCapture(DEVICE, cv2.CAP_V4L2)
 cap.set(cv2.CAP_PROP_FPS, 10)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
 
+# define HTTP request handler
 class MJPEGHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path != '/':
@@ -42,6 +61,7 @@ class MJPEGHandler(BaseHTTPRequestHandler):
             if elapsed < frame_duration:
                 time.sleep(frame_duration - elapsed)
 
+# start HTTP server
 server = HTTPServer(('', PORT), MJPEGHandler)
-print(f"Server MJPEG in ascolto su http://0.0.0.0:{PORT}")
+print(f"MJPEG server listening on http://{HOST}:{PORT}")
 server.serve_forever()

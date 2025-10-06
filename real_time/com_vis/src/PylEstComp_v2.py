@@ -1,30 +1,32 @@
 # -----------------------------------------------------------------------------
 # Copyright (c) 2025 Andrea Dal Prete - Politecnico di Milano
+# Modifications (c) 2025 Nicolas Scalia - Politecnico di Milano
 # All rights reserved.
 #
-# This script is part of the research published in:
-# [Your Paper Title], [Conference/Journal Name], [Year]
+# This script is based on work by Andrea Dal Prete 
+# and has been modified by Nicolas Scalia.
+#
+# Original research published in:
+# [Original Paper Title], [Conference/Journal Name], [Year]
 # DOI: [Insert DOI if available]
 #
 # Author: Andrea Dal Prete (andrea.dalprete@polimi.it)
+# Author of modifications: Nicolas Scalia (nicolas.scalia@mail.polimi.it)
 # -----------------------------------------------------------------------------
 
-# CODE EXPLAINATION
-# this script uses the environment "ObjectDetection_env.yml"
-#%% # Introduction
-
+#%%  CODE EXPLAINATION
 # This script contains the payload estimation module for boxes weight classification. This script is meant to be run 
-# in parallel to a raspberry pi running and returning via cloud the depth estimation map. This scripts uses dinov2 
+# in parallel to a raspberry pi running and returning via cloud the depth estimation map and the RGB video. This scripts uses dinov2 
 # (blog: https://ai.meta.com/blog/dino-v2-computer-vision-self-supervised-learning/, paper: https://arxiv.org/abs/2304.07193).
 # Given Vision Transformers and especially DINOv2 outstanding generlaization capabilities, we take the dinov2 base model provided 
 # by Meta AI, add an additional attention block and multilayer perception, and while freezing the weights of the base model 
 # we fine-tune the last layers with a customized dataset on a specific classification class (payload categorization based on input 
 # images from the object detection script). 
+# In this extended version (PylEstComp), the script also performs a comparison with the payload estimation obtained from EMG and IMU 
+# signals of the Myo armband, when available (i.e., during the time window between the lift onset and offset detected by Myo). 
+# In case of conflicting predictions, the Myo-based estimation is prioritized and sent to the raspberry pi.
 
 #%% ### Set data path and import necessary libraries 
-# data path
-image_path = "candidate.png" # these are the information collected and stored in the local folder by the "object detection and selection module".
-data_path = 'data.csv' # these are the information collected and stored in the local folder by the "object detection and selection module".
 # data preprocessing section needed libraries 
 import cv2
 import time
@@ -34,7 +36,7 @@ import os
 #os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # this enables those operations of pytorch 
                                                 # not supported yet for computation on GPU
                                                 # to fall back to the CPU, and compute the 
-                                                # rest on GPU. 
+                                                # rest on GPU.  (Only mac)
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +46,6 @@ import pandas as pd
 from torchvision import transforms
 import torch
 import warnings
-import random
 warnings.filterwarnings("ignore") # ignore warnings 
 
 # Libraries for real-time communication with socket
@@ -53,30 +54,41 @@ import socket
 # import and build up the encoder base 
 from NeuralNetwork_architectures_Pytorch import get_customizedDINOv2
 
-#%% ### Load data
+# data path
+base_dir = os.path.dirname(__file__)
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
+grandparent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
+input_dir = os.path.join(grandparent_dir, "shared", "temp") # these are the information collected and stored in the local folder by the "object detection and selection module".
+model_path = os.path.join(parent_dir, "models", "CustomDino_models", "customized_DINOv2_v6grayscale_small.pth")
 
+#%% ### Load data
 # define load data function
-def load_data(path_to_data): # this function checks in the local folder if the object selection and detection module detected anything and if there is a candidate loads it. 
+def load_data(path_to_data): # this function checks in the output folder if the object selection and detection module detected anything and if there is a candidate loads it. 
                              # "data.csv" contians also the physical information of the box. Even though we load them too, we don't use them with DINOv2 inference. 
+    gate_path = os.path.join(path_to_data, "gate.csv")
+    gate_myo_path = os.path.join(path_to_data, "gate_myo.csv")
+    data_path = os.path.join(path_to_data, "data.csv")
+    image_path = os.path.join(path_to_data, "candidate.png")
+
     # Import and process image
-    input = cv2.imread(path_to_data) # import the candidate image of the most likely obejct to be picked up by the user 
+    input = cv2.imread(image_path) # import the candidate image of the most likely obejct to be picked up by the user 
                                      # selected in the object detection and selection script 
     # Import and preprocess data
     try: 
-        if os.path.exists('data.csv') and os.path.exists('gate.csv') and os.path.exists('gate_myo.csv'): # data.csv stores some physical information on the object, gate.csv contains a boolean variable 
-                                                                      # controlling if the model sends the actual prediction to the exoskeleton (1) or, if the lifting 
-                                                                      # procedure is likely started already, it keeps on sending the last prediction to avoid instability
-                                                                      # during lifting.  
-            df1 = pd.read_csv('data.csv') # import data 
+        if os.path.exists(data_path) and os.path.exists(gate_path) and os.path.exists(gate_myo_path): # data.csv stores some physical information on the object, gate.csv and gate_myo contains a boolean variable
+                                                                                                         # controlling if the model sends the actual prediction to the exoskeleton (1) or, if the lifting 
+                                                                                                         # procedure is likely started already, it keeps on sending the last prediction to avoid instability
+                                                                                                         # during lifting.  
+            df1 = pd.read_csv(data_path) # import data 
             detected_class = df1.loc[0,'d'] # last column in the data stores the detected object label
-            gate = pd.read_csv('gate.csv').drop('Unnamed: 0', axis=1).loc[0,'boolean'] # extract boolean vlaue from the gate.csv file 
-            gate_myo = pd.read_csv('gate_myo.csv').drop('Unnamed: 0', axis=1).loc[0,'boolean']
+            gate = pd.read_csv(gate_path).drop('Unnamed: 0', axis=1).loc[0,'boolean'] # extract boolean value from the gate.csv file 
+            gate_myo = pd.read_csv(gate_myo_path).drop('Unnamed: 0', axis=1).loc[0,'boolean'] # extract boolean value from the gate_myo.csv file
             return input, gate, gate_myo, detected_class
         else:
             print('\nWarning: either "data.csv" or "gate.csv" or "gate_myo.csv" file not found! Skipping for now...\n')
             time.sleep(1.5)
     except pd.errors.EmptyDataError:
-        print('\nWarning: either gate.csv or data.csv are empty or corrupt. Skipping for now...\n')
+        print('\nWarning: either gate.csv or data.csv or "gate_myo.csv" are empty or corrupt. Skipping for now...\n')
         time.sleep(1.5) 
 
 def display_outputs(object_class, model_output, myo_output): # once the data are received, print what's the outcoming prediction    
@@ -96,7 +108,7 @@ def display_outputs(object_class, model_output, myo_output): # once the data are
     
     if myo_output == model_output:
         print("Model and Myo output are the same!")
-        time.sleep(0.3)
+        time.sleep(0.2)
 
 #%% SET-UP
 # import and construct the payload estimation model
@@ -112,12 +124,12 @@ customizedDino6 = get_customizedDINOv2(dino_model2, 3)
 #print(concatenated_model)
 print("WARNING: Check the 'CustomDino_models' folder, we are not providing the payload estimation model here, see repository details! You'll need a payload estimation model to proceed in running this code! If you already have a model instead you can skip this working.")
 time.sleep(1.5) 
-customizedDino6.load_state_dict(torch.load('CustomDino_models/customized_DINOv2_v6grayscale_small.pth', map_location='xpu', weights_only=True))
+customizedDino6.load_state_dict(torch.load(model_path, map_location='cuda', weights_only=True))
 
 #%% Pre settings (run the model on a GPU if available)
 #device = 'mps' if torch.backends.mps.is_available() else 'cpu'
-device = 'xpu' if torch.xpu.is_available() else 'cpu'
-print(device)
+#device = 'xpu' if torch.xpu.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('\nThe model will be tested on the following device: ', device)
 customizedDino6.eval().to(device) # set the model in evlauation settings 
 
@@ -149,30 +161,29 @@ while True:
     detected_class = 'object'
     # load candidate and 3D shape generation
     try:
-        image, gate, gate_myo, detected_class = load_data(image_path)
+        image, gate, gate_myo, detected_class = load_data(input_dir)
         input_tensor = transform(image).unsqueeze(0).to(device)
         if gate_myo == 0:
             print('\nMyo says: detected offset\n')
-            time.sleep(1.5)
+            time.sleep(0.5)
         elif gate_myo == 1:
             print('\nMyo says: detected onset\n')
-            time.sleep(1)
+            time.sleep(0.5)
 
-        myo_output = pd.read_csv('myo_data.csv').loc[0, 'boolean']
-
+        myo_data_path = os.path.join(input_dir, 'myo_data.csv')
+        myo_output = pd.read_csv(myo_data_path).loc[0, 'boolean']
 
         if gate == 1:
             with torch.no_grad():
                 classification_output6 = customizedDino6(input_tensor)
         model_output = classification_output6[0] 
         model_output = np.argmax(model_output.cpu().numpy())
-        #model_output = random.randint(0, 2) 
         display_outputs(detected_class, model_output, myo_output)
 
-        if myo_output != 4 and myo_output  != model_output:
-            print("Model and Myo output are different! Sending Myo prediction to exo.")
+        if myo_output != 4 and myo_output != model_output:
+            print("Model and Myo output are different! Sending Myo prediction to raspi.")
             model_output = myo_output
-            time.sleep(0.3)
+            time.sleep(0.2)
 
         # Send a response back to the client
         response = str(model_output)
@@ -188,4 +199,3 @@ while True:
         time.sleep(1.5)
         continue
     print('\n\nProcessing time: ', round(1000*(time.time()-start),2), 'ms')
-    

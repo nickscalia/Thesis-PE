@@ -76,6 +76,3 @@ def get_customizedDINOv2(dino_model, n):
             return output
 
     return CustomizedDINOv2(dino_model, n)
-
-
-
