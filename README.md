@@ -50,5 +50,5 @@ This thesis focuses on improving payload estimation methods for back exoskeleton
 
 ## Setup
 
-Each real_time pipeline has its own `requirements.txt`. It's recommended to create a **separate virtual environment** for each to install dependencies. 
+Each real-time pipeline has its own `requirements.txt`. It's recommended to create a **separate virtual environment** for each to install dependencies. 
 The offline pipeline uses Jupyter Notebook via Anaconda. Create a conda environment and install the dependencies using the provided `environment.yml`.  
