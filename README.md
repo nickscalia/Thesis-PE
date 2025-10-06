@@ -1,5 +1,5 @@
 # Payload Estimation for Back-Exoskeleton Control  
-*Master's Thesis - Mechanical Engineering*  
+*Master's Thesis - Mechanical Engineering (Mechatronics & Robotics)*  
 Politecnico di Milano, 2025
 
 ---
