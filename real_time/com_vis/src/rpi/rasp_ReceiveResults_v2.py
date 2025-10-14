@@ -40,7 +40,7 @@ def display_outputs(input):
         print('--------------------------->> model output: x > 12.5 kg')
 
 # Define the server host and port
-HOST = '192.168.52.43'
+HOST = '192.168.0.102'
 #HOST = '172.20.10.2'  # To find your mac's IP you can type the following in the terminal: ipconfig getifaddr en0
 PORT = 65500          # This is the selected port, it could be any number from 0 to 65535. We choose int he range 50000-65535 to avoid conflicts. 
 

@@ -126,7 +126,7 @@ def ObjectDetectionAndIsolation(frame, width):
     # Detect objects
     results1 = model(frame, stream=True, device=device, imgsz=width)
     # Define confidence thresholds for specific classes
-    conf_thresholds_model = {'box': 0.75} # can select the minimum confidence to consider the yolo detection
+    conf_thresholds_model = {'box': 0.65} # can select the minimum confidence to consider the yolo detection
     # Process results sequentially (as required)
     final_probabilities, PositionsAndDimensions = process_results(results1, classNames_model, frame, disparity_map_plasma, distance_map, f, conf_thresholds_model, width_image)
     # Print the final softmax probabilities on the image 
@@ -145,7 +145,7 @@ def ObjectDetectionAndIsolation(frame, width):
         # save object image (for later payload estimation)
         cv2.imwrite(image_path, candidate_image)
         # deifne the gate: if the selected object is within the Xm range, close the gate. That is, keep sending the previous payload estimation to avoid instability while lifting
-        if PositionsAndDimensions[which][6] > 0.1:
+        if PositionsAndDimensions[which][6] > 0.3:
             pd.DataFrame({'boolean':[1]}).to_csv(gate_path)
         else:
             pd.DataFrame({'boolean':[0]}).to_csv(gate_path)
@@ -176,10 +176,10 @@ print('----> YOLO-v11 model general set-up')
 # YOLO model 8 set-up weights 
 color = (0, 65, 255)
 #device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
-#device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
+#device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 base_dir = os.path.dirname(os.path.abspath(__file__))
-weights_path = os.path.join(base_dir, "..", "models", "yolo-Weights", "yolov11_new.pt")
+weights_path = os.path.join(base_dir, "..", "models", "yolo-Weights", "yolov11_nick.pt")
 model = YOLO(weights_path)
 
 print('---- CLASSES NAMES ----')
@@ -201,7 +201,7 @@ import logging
 from numpysocket import NumpySocket
 
 # Define the server host and port
-HOST = '192.168.52.175'
+HOST = '192.168.0.100'
 #HOST = '172.20.10.13'  # To find your macbook IP you can type the following in the terminal: ipconfig getifaddr en0
 PORT = 65400            # This is the selected port, it could be any number from 0 to 65535. We choose in the range 50000-65535 to avoid conflicts. 
 
@@ -217,7 +217,7 @@ with NumpySocket() as s:
     print('Ready for connection. Waiting...')
 
     if video_source == "rasp":
-        url = "http://192.168.52.43:8000/"  # IP del Pi
+        url = "http://192.168.0.102:8000/"  # IP del Pi
         cap = cv2.VideoCapture(url)
         last_frame = None
 
@@ -237,8 +237,8 @@ with NumpySocket() as s:
         print("Error opening the stream")
         exit()
 
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     print(f"Current resolution: {int(width)} x {int(height)}") 
     
     while True:
@@ -273,7 +273,7 @@ with NumpySocket() as s:
                 confid_buf = frame[:,0:width_image] # divide confidence buffer from the depth map
                 # since the emebdded camera and the depth sensor have different "equivalent lenses" and field of viewes, you'll need to crop a bit the depth map to fit it 
                 # into the camera field of view.
-                sensor_depth = frame[:,width_image:-1][:, :-20] # crop a bit the sensor depth to make sure it aligns wiht the image taken from the embedded camera
+                sensor_depth = frame[:,width_image:-1][10:, :-40] # crop a bit the sensor depth to make sure it aligns wiht the image taken from the embedded camera
                 frame = np.concatenate((video_frame, cv2.resize(sensor_depth, (video_frame.shape[1],video_frame.shape[0]))), axis=1) # concatenate image and received depth map
                 # Here the frame is passed to a series fo functions which process the data to: reocgnize boxes in the environment, identify the most likely one to be picked 
                 # up, and save the data relative to that object in a local folder where another script will have access to to read the data and run payload estimation inference. 

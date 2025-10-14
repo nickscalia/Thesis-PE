@@ -350,6 +350,7 @@ class EMGApp:
         self.raw_imu_data = []
         all_predictions = [] # Stores predicted classes
         all_probabilities = [] # Stores class probabilities
+        all_times = []
         stable_classes_log = []
         last_printed_class = None # Tracks last printed class
         warning_shown = False
@@ -490,10 +491,13 @@ class EMGApp:
                     pred_class = int(pred_class[0])
                     pred_proba = float(pred_proba[0])
                     
+                    now = datetime.now()
+                    time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}'
+                    all_times.append(time_ms)
                     all_predictions.append(pred_class)
                     all_probabilities.append(pred_proba)
                             
-                    print(f"Prediction: {self.label_map[pred_class]} ({pred_proba:.2f} probability)")
+                    print(f"Timestamp: {time_ms}, Prediction: {self.label_map[pred_class]} ({pred_proba:.2f} probability)")
                         
                     # Onset and Offset Detection
                     if len(all_predictions) >= 2:    
@@ -510,7 +514,7 @@ class EMGApp:
                     # It accepts a predicted class only if it has been repeated 3 times 
                     # consecutively with high confidence (>0.8).
 
-                    if len(all_predictions) >= 3:
+                    if len(all_predictions) >= 4:
                         last_classes = all_predictions[-3:]
                         last_probas = all_probabilities[-3:]
                         stable_class = None
@@ -519,7 +523,7 @@ class EMGApp:
                             elapsed = time.time() - start_transition
                             
                             if (all(c == last_classes[0] for c in last_classes) and
-                                all(p > 0.8 for p in last_probas)):
+                                all(p > 0.85 for p in last_probas)):
                                 stable_class = last_classes[0]
 
                             # If no class is validated within 0.5s from the beginning of the transition, 
@@ -553,6 +557,7 @@ class EMGApp:
                                 last_printed_class = 0
                                     
                                 stable_classes_log.append({
+                                    'timestamp': time_ms,
                                     'label': stable_class,
                                     'probability': np.mean(last_probas), 
                                     'transition_time': transition
@@ -568,7 +573,8 @@ class EMGApp:
                                 last_printed_class = stable_class
                                
                                 stable_classes_log.append({
-                                     'label': stable_class,
+                                    'timestamp': time_ms,
+                                    'label': stable_class,
                                     'probability': np.mean(last_probas), 
                                     'transition_time': transition
                                     })
@@ -597,6 +603,7 @@ class EMGApp:
 
             # Store estimation data
             df = pd.DataFrame({
+                'timestamp': all_times,
                 'class': all_predictions,
                 'probability': all_probabilities
             })

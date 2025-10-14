@@ -20,7 +20,7 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # configuration
-HOST = '192.168.52.43' 
+HOST = '192.168.0.102' 
 PORT = 8000
 DEVICE = 1
 frame_duration = 0.1

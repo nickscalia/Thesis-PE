@@ -20,7 +20,7 @@
 # to the local pc (mac) for processing.
 
 # Define the server host and port
-HOST = '192.168.52.175'  # when using the wifi router
+HOST = '192.168.0.100'  # when using the wifi router
 #HOST = '172.20.10.13'  # To find your mac's IP you can type the following in the terminal: ipconfig getifaddr en0
 PORT = 65400            # This is the selected port, it could be any number from 0 to 65535. We choose it in the range
                         # 50000-65535 to avoid conflicts.
