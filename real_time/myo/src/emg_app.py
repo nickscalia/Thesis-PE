@@ -50,7 +50,7 @@ class EMGApp:
         self.master = master
         self.already_printed = set() 
         self.master.title("EMG Payload Estimator GUI")
-        self.master.geometry("600x400")
+        self.master.geometry("500x400")
 
         self.label = ttk.Label(self.master, text="Welcome to the EMG Payload Estimator", font=("Segoe UI", 14, "bold"))
         self.label.pack()
@@ -68,7 +68,7 @@ class EMGApp:
             bootstyle="primary",  
             padding=10,
         )
-        self.calibrate_button.pack(fill='x', expand=True, padx=230, pady=5)
+        self.calibrate_button.pack(fill='x', expand=True, padx=180, pady=5)
 
         self.estimate_button = ttk.Button(
             self.master,
@@ -77,7 +77,7 @@ class EMGApp:
             bootstyle="success",  
             padding=10,      
         )
-        self.estimate_button.pack(fill='x', expand=True, padx=230, pady=5)
+        self.estimate_button.pack(fill='x', expand=True, padx=180, pady=5)
 
         self.stop_button = ttk.Button(
             self.master,
@@ -86,7 +86,7 @@ class EMGApp:
             bootstyle="warning",  
             padding=10,    
         )
-        self.stop_button.pack(fill='x', expand=True, padx=230, pady=5)
+        self.stop_button.pack(fill='x', expand=True, padx=180, pady=5)
 
         self.exit_button = ttk.Button(
             self.master,
@@ -95,7 +95,7 @@ class EMGApp:
             bootstyle="danger",  
             padding=10,           
         )
-        self.exit_button.pack(fill='x', expand=True, padx=230, pady=5)
+        self.exit_button.pack(fill='x', expand=True, padx=180, pady=5)
 
         self.separator = ttk.Separator(self.master, orient='horizontal')
         self.separator.pack(fill='x', pady=10)
@@ -131,7 +131,9 @@ class EMGApp:
         self.tolerance = 1 # Tolerance for buffer overlap
         self.label_map = {0: "no weight", 1: "light", 2: "medium", 3: "heavy"} # Maps class IDs to labels
         self.norm_values = {ch: 0 for ch in self.channel_names}
-
+        
+        self.scale_acc = 2048.0
+        self.scale_gyr = 16.4
         self.imu_scalers = []
         self.fs_imu = 50
 
@@ -140,6 +142,7 @@ class EMGApp:
         self.calib_time = 0
         self.calibration = 17
         self.interrupt_flag = False
+
      
     
     def check_elapsed(self, elapsed):
@@ -192,9 +195,13 @@ class EMGApp:
         imu_filt = None
         smooth_threshold = 3
         
+        self.raw_emg_data = []  
+        self.raw_imu_data = []
+        self.raw_times = []
+
         # Live Plot Settings
         plt.ion()
-        fig, ax = plt.subplots(figsize=(5, 4))
+        fig, ax = plt.subplots(figsize=(4, 4))
         line, = ax.plot([], [], lw=1, label='EMG Channel 5')
         ax.set_title("Live Smoothed EMG Channel 5")
         ax.set_xlabel("Time [s]")
@@ -249,6 +256,8 @@ class EMGApp:
                         # Store smoothed values to local buffer
                         emg_smoot[:, ch] = np.roll(emg_smoot[:, ch], -n)
                         emg_smoot[-n:, ch] = emg_rms[-n:]
+                    
+                    self.raw_emg_data.append(curr_new)
                         
                     # Update Live Plot   
                     t0 = (sample_counter - self.window_size) / self.fs
@@ -264,6 +273,8 @@ class EMGApp:
                         
                     # Add only new data to the local buffer
                     curr_new_imu = curr_imu[-n:, :]
+                    curr_new_imu[:, 0:3] /= self.scale_acc 
+                    curr_new_imu[:, 3:6] /= self.scale_gyr
                     imu_ch = np.roll(imu_ch, -n, axis=0)
                     imu_ch[-n:, :] = curr_new_imu
                             
@@ -279,7 +290,15 @@ class EMGApp:
                         imu_filt = imu_filt_temp
                     else:
                         imu_filt = np.vstack((imu_filt, imu_filt_temp))
-                                      
+                    
+                    self.raw_imu_data.append(curr_new_imu) 
+
+
+                now = datetime.now()
+                time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}'
+                times = np.full((n, 1), time_ms)
+                self.raw_times.append(times)
+                                       
                 end_time = time.time()
                 elapsed_time = end_time - start_time
                 elapsed_times.append(elapsed_time)
@@ -312,6 +331,15 @@ class EMGApp:
             norm_df.to_csv(norm_path, index=False)
             with open(imu_scaler_path, 'wb') as f:
                 pickle.dump(self.imu_scalers, f)
+
+
+            emg_raw_all = np.vstack(self.raw_emg_data)
+            imu_raw_all = np.vstack(self.raw_imu_data)
+            times_raw_all = np.vstack(self.raw_times)
+            combined_data = np.hstack((times_raw_all, emg_raw_all, imu_raw_all))
+            columns = ['Timestamps'] + self.channel_names + self.imu_names
+            df_data = pd.DataFrame(combined_data, columns=columns)
+            df_data.to_csv(os.path.join(self.cali_folder_i, "raw_emg_imu.csv"), index=False)
 
             self.calibrate_count += 1
             self.interrupt_flag = False
@@ -348,9 +376,11 @@ class EMGApp:
         window_feature_size = 40 # Dimension of window size onto which the feature is computed
         self.raw_emg_data = []  
         self.raw_imu_data = []
+        self.raw_times = []
         all_predictions = [] # Stores predicted classes
         all_probabilities = [] # Stores class probabilities
         all_times = []
+        all_inf_times = []
         stable_classes_log = []
         last_printed_class = None # Tracks last printed class
         warning_shown = False
@@ -376,7 +406,7 @@ class EMGApp:
 
         # Live Plot Settings
         plt.ion()
-        fig, ax = plt.subplots(figsize=(5, 4))
+        fig, ax = plt.subplots(figsize=(4, 4))
         line, = ax.plot([], [], lw=1, label='EMG Channel 5')
         ax.set_title("Live Normalized EMG Channel 5")
         ax.set_ylabel("Normalized EMG")
@@ -389,7 +419,10 @@ class EMGApp:
         odh.reset()
         
         try:
-            total_start = time.time() 
+            total_start = time.time()
+            total_start_d = datetime.now()
+            total_start_str = total_start_d.strftime('%H_%M_%S') + f'_{int(total_start_d.microsecond / 1000):03d}'
+            metadata['total_start'] = total_start_str
             start_transition = time.time()
             self.status_label.config(text="Beginning of Estimation",font=("Segoe UI", 14, "bold"))
             self.master.update()
@@ -446,7 +479,9 @@ class EMGApp:
                     curr_imu = curr_imu[:, -6:]
                         
                     # Add only new data to the local buffer
-                    curr_new_imu = curr_imu[-n:, :]
+                    curr_new_imu = curr_imu[-n:, :].astype(np.float32) 
+                    curr_new_imu[:, 0:3] /= self.scale_acc 
+                    curr_new_imu[:, 3:6] /= self.scale_gyr
                     imu_ch = np.roll(imu_ch, -n, axis=0)
                     imu_ch[-n:, :] = curr_new_imu
 
@@ -458,8 +493,13 @@ class EMGApp:
                         imu_filt[:, ch] = np.roll(imu_filt[:, ch], -n)
                         imu_filt[-n:, ch] = imu_scaled[-n:]
                     
-                    self.raw_imu_data.append(imu_filt[-n:, :])    
-                      
+                    self.raw_imu_data.append(curr_new_imu)    
+                
+                now = datetime.now()
+                time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}'
+                times = np.full((n, 1), time_ms)
+                self.raw_times.append(times) 
+
                 # Extract features and predict weight class
                 if sample_counter > window_feature_size:
                     # Create EMG dictionaries
@@ -486,13 +526,16 @@ class EMGApp:
                     #X_scaled = self.pca.transform(X_scaled) # Only for PCA features
                               
                     # Model Prediction
+                    start_inf = time.perf_counter()
                     prediction = self.model.run(X_scaled)
+                    inf_time = round(1000*(time.perf_counter()-start_inf),3)
                     pred_class, pred_proba = prediction
                     pred_class = int(pred_class[0])
                     pred_proba = float(pred_proba[0])
-                    
+
                     now = datetime.now()
-                    time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}'
+                    time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}' 
+                    all_inf_times.append(inf_time)
                     all_times.append(time_ms)
                     all_predictions.append(pred_class)
                     all_probabilities.append(pred_proba)
@@ -512,7 +555,7 @@ class EMGApp:
                     # This logic implements a stability check on predictions.
                     # The code validates a prediction only if an onset or offset has been detected.
                     # It accepts a predicted class only if it has been repeated 3 times 
-                    # consecutively with high confidence (>0.8).
+                    # consecutively with high confidence (>0.85).
 
                     if len(all_predictions) >= 4:
                         last_classes = all_predictions[-3:]
@@ -579,7 +622,7 @@ class EMGApp:
                                     'transition_time': transition
                                     })
                                 start_transition = None
-                                
+
                 plt.pause(0.001) # Update the plot
                 end_time = time.time()
                 elapsed_time = end_time - start_time
@@ -604,6 +647,7 @@ class EMGApp:
             # Store estimation data
             df = pd.DataFrame({
                 'timestamp': all_times,
+                'myo_inf_time': all_inf_times,
                 'class': all_predictions,
                 'probability': all_probabilities
             })
@@ -615,8 +659,9 @@ class EMGApp:
 
             emg_raw_all = np.vstack(self.raw_emg_data)
             imu_raw_all = np.vstack(self.raw_imu_data)
-            combined_data = np.hstack((emg_raw_all, imu_raw_all))
-            columns = self.channel_names + self.imu_names
+            times_raw_all = np.vstack(self.raw_times)
+            combined_data = np.hstack((times_raw_all, emg_raw_all, imu_raw_all))
+            columns = ['Timestamps'] + self.channel_names + self.imu_names
             df_data = pd.DataFrame(combined_data, columns=columns)
             df_data.to_csv(os.path.join(self.est_folder_i, "raw_emg_imu.csv"), index=False)      
             self.interrupt_flag = False

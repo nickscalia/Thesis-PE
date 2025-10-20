@@ -192,9 +192,6 @@ def prepare_cv_data(X, n_folds, random_state=42):
     return crossvalidation_var, data_dict
 
 def plot_feature_accuracy(features, accuracies, batch_size=40):
-    """
-    Plots individual feature accuracies in batches for readability.
-    """
     accuracies = np.array(accuracies)
     n_features = len(features)
     
@@ -203,8 +200,8 @@ def plot_feature_accuracy(features, accuracies, batch_size=40):
         a_batch = accuracies[i:i+batch_size]
         
         n = len(f_batch)
-        width = max(12, min(0.5 * n, 50))
-        height = max(6, min(0.25 * n, 20))
+        width = 10
+        height = 20
 
         def scale_font(base, min_val=10, max_val=32):
             return int(np.clip(width * base, min_val, max_val))
@@ -214,7 +211,7 @@ def plot_feature_accuracy(features, accuracies, batch_size=40):
         title_size  = scale_font(1.5)
         tick_size   = scale_font(1)
 
-        plt.figure(figsize=(width, height))
+        plt.figure(figsize=(12, 6))
         plt.bar(f_batch, a_batch)
 
         plt.xlabel('Features', fontsize=xlabel_size)
@@ -259,12 +256,15 @@ def plot_sequential_selection_heatmap(metric_matrix, feature_names, batch_size=4
 
 
 def plot_feature_selection_performance(results, model_name='Model'):
-    """
-    Plot accuracy vs number of features from a list of (k, accuracy) tuples.
-    """
     # Extract the number of features and corresponding accuracy values
     k_vals = np.array([k for k, acc in results])
     acc_vals = np.array([acc for k, acc in results])
+
+    width = 10
+    height = 20
+
+    def scale_font(base, min_val=10, max_val=32):
+        return int(np.clip(width * base, min_val, max_val))
 
     # Create the plot
     plt.figure(figsize=(12, 6))

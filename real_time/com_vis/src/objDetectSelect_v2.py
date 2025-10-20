@@ -126,7 +126,7 @@ def ObjectDetectionAndIsolation(frame, width):
     # Detect objects
     results1 = model(frame, stream=True, device=device, imgsz=width)
     # Define confidence thresholds for specific classes
-    conf_thresholds_model = {'box': 0.65} # can select the minimum confidence to consider the yolo detection
+    conf_thresholds_model = {'box': 0.7} # can select the minimum confidence to consider the yolo detection
     # Process results sequentially (as required)
     final_probabilities, PositionsAndDimensions = process_results(results1, classNames_model, frame, disparity_map_plasma, distance_map, f, conf_thresholds_model, width_image)
     # Print the final softmax probabilities on the image 
@@ -145,7 +145,7 @@ def ObjectDetectionAndIsolation(frame, width):
         # save object image (for later payload estimation)
         cv2.imwrite(image_path, candidate_image)
         # deifne the gate: if the selected object is within the Xm range, close the gate. That is, keep sending the previous payload estimation to avoid instability while lifting
-        if PositionsAndDimensions[which][6] > 0.3:
+        if PositionsAndDimensions[which][6] > 1.2:
             pd.DataFrame({'boolean':[1]}).to_csv(gate_path)
         else:
             pd.DataFrame({'boolean':[0]}).to_csv(gate_path)
@@ -155,8 +155,8 @@ def ObjectDetectionAndIsolation(frame, width):
     final_plot = cv2.vconcat((frame[:,0:-1,:], disparity_map_plasma))
     orig_height, orig_width = final_plot.shape[:2]
     # reduce plot dimensions
-    new_width = orig_width // 2
-    new_height = orig_height // 2
+    new_height = 800
+    new_width = int((orig_width / orig_height) * new_height)
     small_plot = cv2.resize(final_plot, (new_width, new_height), interpolation=cv2.INTER_AREA)
     cv2.imshow('Recognition with depth', small_plot)
     #cv2.imshow('Recognition with depth', final_plot)
@@ -179,7 +179,7 @@ color = (0, 65, 255)
 device = torch.device('xpu' if torch.xpu.is_available() else 'cpu')
 #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 base_dir = os.path.dirname(os.path.abspath(__file__))
-weights_path = os.path.join(base_dir, "..", "models", "yolo-Weights", "yolov11_nick.pt")
+weights_path = os.path.join(base_dir, "..", "models", "yolo-Weights", "yolo11_nick2.pt")
 model = YOLO(weights_path)
 
 print('---- CLASSES NAMES ----')
@@ -273,7 +273,7 @@ with NumpySocket() as s:
                 confid_buf = frame[:,0:width_image] # divide confidence buffer from the depth map
                 # since the emebdded camera and the depth sensor have different "equivalent lenses" and field of viewes, you'll need to crop a bit the depth map to fit it 
                 # into the camera field of view.
-                sensor_depth = frame[:,width_image:-1][10:, :-40] # crop a bit the sensor depth to make sure it aligns wiht the image taken from the embedded camera
+                sensor_depth = frame[:,width_image:-1][10:, :-20] # crop a bit the sensor depth to make sure it aligns wiht the image taken from the embedded camera
                 frame = np.concatenate((video_frame, cv2.resize(sensor_depth, (video_frame.shape[1],video_frame.shape[0]))), axis=1) # concatenate image and received depth map
                 # Here the frame is passed to a series fo functions which process the data to: reocgnize boxes in the environment, identify the most likely one to be picked 
                 # up, and save the data relative to that object in a local folder where another script will have access to to read the data and run payload estimation inference. 

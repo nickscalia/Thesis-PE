@@ -20,6 +20,15 @@ from emg_app import EMGApp
 
 #%% Creates the GUI window and starts the EMG Payload Estimator application.
 if __name__ == "__main__":
-    root = ttk.Window(themename="flatly") 
+    root = ttk.Window(themename="flatly")
+    window_width = 500
+    window_height = 400
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    x = screen_width - window_width
+    y = 0
+    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
     app = EMGApp(root)
     root.mainloop()

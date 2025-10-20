@@ -70,3 +70,35 @@ def myo_extract_imu(dataframes):
             imu_dict[col].append(filtered_df[col].to_numpy())
 
     return imu_dict, IMU_Time, fs_list
+
+def myo_extract_imu_py(dataframes):
+    """
+    Extract IMU data (acc, gyr) and corresponding time from DataFrames.
+    """
+    imu_columns = [ 'ACC_X', 'ACC_Y', 'ACC_Z', 'GYR_X','GYR_Y', 'GYR_Z']
+    imu_dict = {col: [] for col in imu_columns}
+    IMU_Time = []
+    fs_list = []
+
+    for i, df in enumerate(dataframes):
+        # Keep only rows where IMU values change
+        imu_values = df[imu_columns]
+        changed_rows = imu_values.shift() != imu_values
+        changed_rows = changed_rows.any(axis=1)
+        filtered_df = df[changed_rows].reset_index(drop=True)
+
+        # Calculate fs as (num_kept_samples / total_samples) * 200
+        total_samples = len(df)
+        kept_samples = len(filtered_df)
+        fs = (kept_samples / total_samples) * 200
+        fs_list.append(fs)
+
+        # Generate IMU time signal
+        time_signal = np.arange(kept_samples) / fs
+        IMU_Time.append(time_signal)
+
+        # Fill imu_dict
+        for col in imu_columns:
+            imu_dict[col].append(filtered_df[col].to_numpy())
+
+    return imu_dict, IMU_Time, fs_list

@@ -60,7 +60,7 @@ base_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
 grandparent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
 input_dir = os.path.join(grandparent_dir, "shared", "temp") # these are the information collected and stored in the local folder by the "object detection and selection module".
-model_path = os.path.join(parent_dir, "models", "CustomDino_models", "customized_DINOv2_v6grayscale_small.pth")
+model_path = os.path.join(parent_dir, "models", "CustomDino_models", "customized_DINOv2_v6grayscale.pth")
 log_dir = os.path.join(parent_dir, 'data', timestamp)
 log_file = os.path.join(log_dir, 'realtime_log.csv')
 
@@ -85,14 +85,15 @@ def load_data(path_to_data): # this function checks in the output folder if the 
             df1 = pd.read_csv(data_path) # import data 
             detected_class = df1.loc[0,'d'] # last column in the data stores the detected object label
             gate = pd.read_csv(gate_path).drop('Unnamed: 0', axis=1).loc[0,'boolean'] # extract boolean value from the gate.csv file 
+            print("---------------->> Gate cv : ", gate)
             gate_myo = pd.read_csv(gate_myo_path).drop('Unnamed: 0', axis=1).loc[0,'boolean'] # extract boolean value from the gate_myo.csv file
             return input, gate, gate_myo, detected_class
         else:
             print('\nWarning: either "data.csv" or "gate.csv" or "myo_gate.csv" file not found! Skipping for now...\n')
-            time.sleep(0.2)
+            time.sleep(0.1)
     except pd.errors.EmptyDataError:
         print('\nWarning: either gate.csv or data.csv or "gate_myo.csv" are empty or corrupt. Skipping for now...\n')
-        time.sleep(0.2) 
+        time.sleep(0.1) 
 
 def display_outputs(object_class, model_output, myo_output): # once the data are received, print what's the outcoming prediction    
     if model_output == 0:
@@ -110,7 +111,7 @@ def display_outputs(object_class, model_output, myo_output): # once the data are
         print('The Myo output is ---------------->>     ' + object_class + ' > 12.5 kg')
     
     if myo_output == model_output:
-        print("Model and Myo output are the same!")
+        print("Model and Myo output are the same! Sending Myo prediction to raspi.")
         #time.sleep(0.2)
 
 #%% SET-UP
@@ -122,11 +123,11 @@ dino_model2 = 'dinov2_vits14'
 # call the concatenated model constructor. The concatenated model takes the embedded images (features coming from the convolutional base output)
 # and feeds them into the fully connected dense network. The output from the fully connected dense network is then concatenated with the object 
 # information and fed into another little fully connected network, and consequently mapped into the classification output. 
-customizedDino6 = get_customizedDINOv2(dino_model2, 3)
+customizedDino6 = get_customizedDINOv2(dino_model1, 3)
 #print('Concatenated model summary:')
 #print(concatenated_model)
 print("WARNING: Check the 'CustomDino_models' folder, we are not providing the payload estimation model here, see repository details! You'll need a payload estimation model to proceed in running this code! If you already have a model instead you can skip this working.")
-time.sleep(1.5) 
+time.sleep(1) 
 customizedDino6.load_state_dict(torch.load(model_path, map_location='xpu', weights_only=True))
 
 #%% Pre settings (run the model on a GPU if available)
@@ -164,10 +165,11 @@ while True:
     if not log_dir_created: 
         os.makedirs(log_dir, exist_ok=True)
         log_dir_created = True 
-        df_init = pd.DataFrame(columns=['timestamp', 'proc_time_ms', 'gate_cv', 'gate_myo', 'response', 'model_output', 'myo_output'])
+        df_init = pd.DataFrame(columns=['timestamp','cv_inf_ms', 'proc_time_ms', 'gate_cv', 'gate_myo', 'response', 'model_output', 'myo_output'])
         df_init.to_csv(log_file, index=False)
 
     start = time.time()
+    inf_time = 0
     detected_class = 'object'
     # load candidate and 3D shape generation
     try:
@@ -175,29 +177,33 @@ while True:
         input_tensor = transform(image).unsqueeze(0).to(device)
         if gate_myo == 0:
             print('\nMyo says: detected offset\n')
-            time.sleep(0.1)
+            #time.sleep(0.1)
         elif gate_myo == 1:
             print('\nMyo says: detected onset\n')
-            time.sleep(0.1)
+            #time.sleep(0.1)
 
         myo_data_path = os.path.join(input_dir, 'myo_data.csv')
         myo_output = pd.read_csv(myo_data_path).loc[0, 'boolean']
 
+        start_inf = time.perf_counter()
         if gate == 1:
             with torch.no_grad():
                 classification_output6 = customizedDino6(input_tensor)
         model_output = classification_output6[0] 
         model_output = np.argmax(model_output.cpu().numpy())
+        inf_time = round(1000*(time.perf_counter()-start_inf),3)
         now = datetime.now()
         time_ms =  now.strftime('%H_%M_%S') + f'_{int(now.microsecond / 1000):03d}'
         print(f'Timestamp: {time_ms}')
         display_outputs(detected_class, model_output, myo_output)
 
         response = model_output
-        if myo_output != 4 and myo_output != model_output:
-            print("Model and Myo output are different! Sending Myo prediction to raspi.")
+        if myo_output != 4:
             response = myo_output
-            #time.sleep(0.2)
+            if myo_output != model_output:
+                print("Model and Myo output are different! Sending Myo prediction to raspi.")
+                response = myo_output
+                #time.sleep(0.2)
 
         # Send a response back to the client
         response = str(response)
@@ -207,6 +213,7 @@ while True:
         processing_time = round(1000*(time.time()-start),2)
         log_entry = pd.DataFrame([{
             'timestamp': time_ms,
+            'cv_inf_ms': inf_time,
             'proc_time_ms': processing_time,
             'gate_cv': gate,
             'gate_myo': gate_myo,
@@ -223,6 +230,7 @@ while True:
 
         log_entry = pd.DataFrame([{
             'timestamp': time_ms,
+            'cv_inf_ms': np.nan,
             'proc_time_ms': np.nan,
             'gate_cv': np.nan,
             'gate_myo': np.nan,
@@ -232,7 +240,7 @@ while True:
         }])
         log_entry.to_csv(log_file, mode='a', index=False, header=False)
 
-        time.sleep(0.2)
+        time.sleep(0.1)
         continue
     
     except AttributeError:
@@ -242,6 +250,7 @@ while True:
 
         log_entry = pd.DataFrame([{
             'timestamp': time_ms,
+            'cv_inf_ms': np.nan,
             'proc_time_ms': np.nan,
             'gate_cv': np.nan,
             'gate_myo': np.nan,
@@ -251,7 +260,7 @@ while True:
         }])
         log_entry.to_csv(log_file, mode='a', index=False, header=False)
 
-        time.sleep(0.2)
+        time.sleep(0.1)
         continue
 
     except pd.errors.EmptyDataError:
@@ -261,6 +270,7 @@ while True:
 
         log_entry = pd.DataFrame([{
             'timestamp': time_ms,
+            'cv_inf_ms': np.nan,
             'proc_time_ms': np.nan,
             'gate_cv': np.nan,
             'gate_myo': np.nan,
@@ -270,7 +280,7 @@ while True:
         }])
         log_entry.to_csv(log_file, mode='a', index=False, header=False)
 
-        time.sleep(0.2)
+        time.sleep(0.1)
         continue
     
     print('\n\nProcessing time: ', processing_time, 'ms')

@@ -1,0 +1,4 @@
+25 emg
+25 imu
+80 emg+imu
+85 PCA

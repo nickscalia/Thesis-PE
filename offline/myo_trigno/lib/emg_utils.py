@@ -66,7 +66,7 @@ def MVC_normalization(signal, muscle_name, mvc_csv_path, ide=None):
     """
     Normalizes EMG signal by MVC value from CSV file.
     """
-    df = pd.read_csv(mvc_csv_path, index_col=0)
+    df = pd.read_csv(mvc_csv_path, index_col=0, sep=';')
     
     if muscle_name not in df.index:
         raise ValueError(f"Muscle name '{muscle_name}' not found in MVC CSV.")
