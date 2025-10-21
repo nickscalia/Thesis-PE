@@ -111,7 +111,7 @@ class EMGApp:
         self.cali_folder = os.path.join(self.data_folder, "calibrate")
         self.est_folder = os.path.join(self.data_folder, "estimate")
         
-        self.models_dir = os.path.join(parent_dir, "models", "emg_imu", "74", "GB2")
+        self.models_dir = os.path.join(parent_dir, "models", "emg_imu", "12", "74", "GB2")
         self.output_dir = os.path.join(grandparent_dir, "shared", "temp")
         self.gate_path = os.path.join(self.output_dir, "myo_gate.csv")
         self.pred_path = os.path.join(self.output_dir, "myo_data.csv")
@@ -119,7 +119,7 @@ class EMGApp:
         
         self.model = load(os.path.join(self.models_dir, "model.pkl"))
         self.scaler = load(os.path.join(self.models_dir, "scaler.pkl"))
-        #self.pca = load('/../data/stream/models/pca/emg_imu/pca.pkl')
+        #self.pca = load(os.path.join(self.models_dir,"pca.pkl"))
 
         # Channels of interest
         self.channel_names = ['channel_1', 'channel_2', 'channel_3', 'channel_4',
@@ -388,8 +388,11 @@ class EMGApp:
         
         # Extracted Features Definition
         features_list_norm = ['MAV', 'WL','VAR', 'WAMP']  # Features on normalized signal
+        #features_list_norm = ['MAV', 'WL', 'VAR', 'SAMPEN'] 
+        #features_list_filt = ['ZC', 'SSC', 'KURT', 'SKEW']  # Features on filtered signal
         features_list_filt = ['ZC', 'SSC']  # Features on filtered signal
         features_list_imu = ['MAV', 'SKEW', 'VAR','WAMP']
+        #features_list_imu = ['MAV', 'SKEW', 'VAR']
         
         # Create list of ordered features (same order as scaler and model)
         selected_feature_names = []
@@ -403,7 +406,7 @@ class EMGApp:
             if i == 2:  
                 selected_feature_names.append("VM_myo_ACC_all")           
         selected_feature_names.append("VM_myo_GYR_all")
-
+        
         # Live Plot Settings
         plt.ion()
         fig, ax = plt.subplots(figsize=(4, 4))
@@ -566,12 +569,13 @@ class EMGApp:
                             elapsed = time.time() - start_transition
                             
                             if (all(c == last_classes[0] for c in last_classes) and
-                                all(p > 0.85 for p in last_probas)):
+                                all(p > 0.8 for p in last_probas)):
                                 stable_class = last_classes[0]
 
                             # If no class is validated within 0.5s from the beginning of the transition, 
                             # the most frequent class with prob >0.6 is assigned.
-                            elif elapsed > 0.5:
+                            #elif elapsed > 0.5:
+                            elif elapsed > 1.5:
                                 recent_classes = all_predictions[-10:]
                                 recent_probas = all_probabilities[-10:]
 
