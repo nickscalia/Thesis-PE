@@ -1,0 +1,11 @@
+device,test,box,accuracy,precision,recall,f1
+MYO,test,test_1,0.56,0.70,0.56,0.53
+CV,test,test_1,0.39,0.45,0.39,0.40
+MYO,test,test_2,0.59,0.68,0.59,0.57
+CV,test,test_2,0.42,0.52,0.42,0.41
+MYO,box,trasp,0.56,0.69,0.56,0.54
+CV,box,trasp,0.52,0.56,0.52,0.52
+MYO,box,opaq,0.58,0.69,0.58,0.56
+CV,box,opaq,0.29,0.28,0.29,0.24
+MYO,total,total,0.57,0.69,0.57,0.55
+CV,total,total,0.41,0.48,0.41,0.40
