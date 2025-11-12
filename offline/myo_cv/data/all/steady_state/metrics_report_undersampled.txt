@@ -1,0 +1,312 @@
+AGGREGATED METRICS REPORT (UNDERSAMPLED)
+Data Directory: C:\Users\nicol\Thesis\pyl_est\offline\myo_cv\data
+Subjects Analyzed: 12
+================================================================================
+
+================================================================================
+--- METRICS FOR: Session: test1a - UNDERSAMPLED ---
+================================================================================
+(Based on 6624 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.6060
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.90      0.99      0.94      1656
+       light       0.70      0.60      0.65      1656
+      medium       0.39      0.63      0.48      1656
+       heavy       0.49      0.21      0.29      1656
+
+    accuracy                           0.61      6624
+   macro avg       0.62      0.61      0.59      6624
+weighted avg       0.62      0.61      0.59      6624
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.4785
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.70      0.60      0.65      1656
+      medium       0.39      0.63      0.48      1656
+       heavy       0.49      0.21      0.29      1656
+
+   micro avg       0.49      0.48      0.49      4968
+   macro avg       0.53      0.48      0.47      4968
+weighted avg       0.53      0.48      0.47      4968
+
+
+
+
+================================================================================
+--- METRICS FOR: Session: test1b - UNDERSAMPLED ---
+================================================================================
+(Based on 6544 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.5873
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.94      0.99      0.96      1636
+       light       0.72      0.52      0.60      1636
+      medium       0.36      0.63      0.46      1636
+       heavy       0.45      0.22      0.29      1636
+
+    accuracy                           0.59      6544
+   macro avg       0.62      0.59      0.58      6544
+weighted avg       0.62      0.59      0.58      6544
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.4535
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.72      0.52      0.60      1636
+      medium       0.36      0.63      0.46      1636
+       heavy       0.45      0.22      0.29      1636
+
+   micro avg       0.46      0.45      0.46      4908
+   macro avg       0.51      0.45      0.45      4908
+weighted avg       0.51      0.45      0.45      4908
+
+
+
+
+================================================================================
+--- METRICS FOR: Session: test2a - UNDERSAMPLED ---
+================================================================================
+(Based on 8504 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.6397
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.93      0.98      0.95      2126
+       light       0.80      0.54      0.64      2126
+      medium       0.43      0.67      0.52      2126
+       heavy       0.53      0.38      0.44      2126
+
+    accuracy                           0.64      8504
+   macro avg       0.67      0.64      0.64      8504
+weighted avg       0.67      0.64      0.64      8504
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.5270
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.80      0.54      0.64      2126
+      medium       0.43      0.67      0.52      2126
+       heavy       0.53      0.38      0.44      2126
+
+   micro avg       0.54      0.53      0.53      6378
+   macro avg       0.59      0.53      0.53      6378
+weighted avg       0.59      0.53      0.53      6378
+
+
+
+
+================================================================================
+--- METRICS FOR: Session: test2b - UNDERSAMPLED ---
+================================================================================
+(Based on 7452 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.6298
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.90      0.98      0.94      1863
+       light       0.83      0.49      0.61      1863
+      medium       0.42      0.63      0.51      1863
+       heavy       0.51      0.42      0.46      1863
+
+    accuracy                           0.63      7452
+   macro avg       0.67      0.63      0.63      7452
+weighted avg       0.67      0.63      0.63      7452
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.5128
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.83      0.49      0.61      1863
+      medium       0.42      0.63      0.51      1863
+       heavy       0.51      0.42      0.46      1863
+
+   micro avg       0.53      0.51      0.52      5589
+   macro avg       0.59      0.51      0.53      5589
+weighted avg       0.59      0.51      0.53      5589
+
+
+
+
+================================================================================
+--- METRICS FOR: Test 1 (1a+1b) - UNDERSAMPLED ---
+================================================================================
+(Based on 13168 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.5971
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.92      0.98      0.95      3292
+       light       0.70      0.56      0.62      3292
+      medium       0.37      0.63      0.47      3292
+       heavy       0.48      0.21      0.29      3292
+
+    accuracy                           0.60     13168
+   macro avg       0.62      0.60      0.58     13168
+weighted avg       0.62      0.60      0.58     13168
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.4679
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.70      0.56      0.62      3292
+      medium       0.37      0.63      0.47      3292
+       heavy       0.48      0.21      0.29      3292
+
+   micro avg       0.48      0.47      0.47      9876
+   macro avg       0.52      0.47      0.46      9876
+weighted avg       0.52      0.47      0.46      9876
+
+
+
+
+================================================================================
+--- METRICS FOR: Test 2 (2a+2b) - UNDERSAMPLED ---
+================================================================================
+(Based on 15956 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.6331
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.91      0.98      0.95      3989
+       light       0.82      0.51      0.63      3989
+      medium       0.42      0.64      0.51      3989
+       heavy       0.51      0.39      0.45      3989
+
+    accuracy                           0.63     15956
+   macro avg       0.67      0.63      0.63     15956
+weighted avg       0.67      0.63      0.63     15956
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.5169
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.82      0.51      0.63      3989
+      medium       0.42      0.64      0.51      3989
+       heavy       0.51      0.39      0.45      3989
+
+   micro avg       0.53      0.52      0.52     11967
+   macro avg       0.58      0.52      0.53     11967
+weighted avg       0.58      0.52      0.53     11967
+
+
+
+
+================================================================================
+--- METRICS FOR: Overall (1+2) - UNDERSAMPLED ---
+================================================================================
+(Based on 29124 total samples after undersampling)
+
+
+--- 4-Class Analysis (no weight, light, medium, heavy) ---
+
+Overall Accuracy (4-Class): 0.6145
+
+Classification Report (4-Class):
+
+              precision    recall  f1-score   support
+
+   no weight       0.92      0.98      0.95      7281
+       light       0.76      0.53      0.63      7281
+      medium       0.40      0.64      0.49      7281
+       heavy       0.49      0.30      0.37      7281
+
+    accuracy                           0.61     29124
+   macro avg       0.64      0.61      0.61     29124
+weighted avg       0.64      0.61      0.61     29124
+
+
+
+--- 3-Class Analysis (light, medium, heavy) ---
+
+Overall Accuracy (Classes 1, 2, 3 only): 0.4918
+
+Classification Report (Classes 1, 2, 3):
+
+              precision    recall  f1-score   support
+
+       light       0.76      0.53      0.63      7281
+      medium       0.40      0.64      0.49      7281
+       heavy       0.49      0.30      0.37      7281
+
+   micro avg       0.50      0.49      0.50     21843
+   macro avg       0.55      0.49      0.50     21843
+weighted avg       0.55      0.49      0.50     21843
+
+
+

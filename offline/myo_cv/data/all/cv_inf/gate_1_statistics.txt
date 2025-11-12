@@ -1,0 +1,20 @@
+
+Statistiche per gate_cv == 1
+-----------------------------------
+File 'realtime_log.csv' processati: 49
+Campioni totali (con gate_cv == 1): 35456
+-----------------------------------
+
+Colonna: 'cv_inf_ms'
+  Media:           119.123543
+  Deviazione Std:  47.472028
+  Minimo:          60.954000
+  Mediana:         116.936500
+  Massimo:         1865.191000
+
+Colonna: 'proc_time_ms'
+  Media:           147.807513
+  Deviazione Std:  50.635246
+  Minimo:          74.420000
+  Mediana:         142.960000
+  Massimo:         1930.090000

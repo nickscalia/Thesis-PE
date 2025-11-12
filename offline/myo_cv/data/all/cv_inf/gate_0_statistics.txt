@@ -1,0 +1,13 @@
+
+Statistiche per gate_cv == 0
+-----------------------------------
+File 'realtime_log.csv' processati: 49
+Campioni totali (con gate_cv == 0): 153445
+-----------------------------------
+
+Colonna: 'proc_time_ms'
+  Media:           20.160937
+  Deviazione Std:  9.643666
+  Minimo:          4.290000
+  Mediana:         18.270000
+  Massimo:         150.890000

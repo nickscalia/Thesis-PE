@@ -1,0 +1,19 @@
+
+Statistiche per la Frequenza di Campionamento EMG (Hz)
+---------------------------------------------------
+File 'raw_emg_imu.csv' processati: 82
+
+Nota sulla metodologia (come da richiesta):
+- N_valid = (Righe Totali) - (Conteggio del primo timestamp)
+- Delta_T = (Ultimo timestamp) - (Primo timestamp) [secondi]
+- Frequenza = N_valid / Delta_T
+---------------------------------------------------
+
+Metriche aggregate:
+  Media:           121.884 Hz
+  Deviazione Std:  27.129 Hz
+  Minimo:          56.610 Hz
+  25° Percentile:  103.280 Hz
+  Mediana (50°):   113.478 Hz
+  75° Percentile:  131.964 Hz
+  Massimo:         191.285 Hz

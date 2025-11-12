@@ -1,0 +1,10 @@
+--- Global Latency Metrics Summary (T_myo - T_real) ---
+Subjects Analyzed: 12
+Total Latencies Calculated: 360
+----------------------------------------------------------
+Mean: 700.68 ms
+Median (P50): 648.65 ms
+Standard Deviation: 375.61 ms
+P95 (95th Percentile): 1367.94 ms
+Minimum: 31.00 ms
+Maximum: 1943.71 ms

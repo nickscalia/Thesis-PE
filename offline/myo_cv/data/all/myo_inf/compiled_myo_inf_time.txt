@@ -1,0 +1,18 @@
+
+Statistiche per 'myo_inf_time'
+-----------------------------------
+Cartella di origine: C:\Users\nicol\Thesis\DATA real time\_test_raw
+File processati:     68
+-----------------------------------
+
+Metriche principali:
+  Media:           5.890972
+  Deviazione Std:  1.557772
+
+Metriche descrittive:
+  Campioni totali: 112044
+  Valore Minimo:   2.376000
+  25° Percentile:  4.744000
+  Mediana (50°):   5.725000
+  75° Percentile:  6.876000
+  Valore Massimo:  19.370000

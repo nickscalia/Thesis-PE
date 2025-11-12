@@ -1,0 +1,5 @@
+,Pred_no weight,Pred_light,Pred_medium,Pred_heavy
+True_no weight,843,12,15,0
+True_light,25,65,0,0
+True_medium,8,35,34,0
+True_heavy,0,4,106,0

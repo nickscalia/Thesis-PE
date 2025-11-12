@@ -1,0 +1,22 @@
+
+Statistiche per la Frequenza Dati IMU Unici (Hz)
+---------------------------------------------------
+File 'raw_emg_imu.csv' processati: 82
+
+Nota sulla metodologia (come da richiesta):
+1. Lette le colonne 'Timestamps' e 6 colonne IMU.
+2. Rimosse le righe con tutti i 6 sensori IMU a 0.
+3. Rimossi i duplicati basati solo sui 6 valori IMU.
+4. N_valid = (Righe Filtrate Totali) - (Conteggio del primo timestamp)
+5. Delta_T = (Ultimo timestamp) - (Primo timestamp) [secondi]
+6. Frequenza = N_valid / Delta_T
+---------------------------------------------------
+
+Metriche aggregate:
+  Media:           45.031 Hz
+  Deviazione Std:  3.722 Hz
+  Minimo:          35.003 Hz
+  25° Percentile:  42.523 Hz
+  Mediana (50°):   46.032 Hz
+  75° Percentile:  48.342 Hz
+  Massimo:         49.996 Hz

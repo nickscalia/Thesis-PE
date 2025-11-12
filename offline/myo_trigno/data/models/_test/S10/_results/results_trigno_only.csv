@@ -1,0 +1,33 @@
+Test Set,Model,Accuracy,Precision,Recall,F1 Score,Training Time (s),Inference Time (ms)
+Trigno Only - EMG + IMU Selected Features,GB,93.28,93.31,93.28,93.28,33.4111,2.9826
+Trigno Only - EMG + IMU Selected Features,SVM,90.63,90.64,90.63,90.63,2.4248,1.2471
+Trigno Only - EMG + IMU Selected Features,MLP,90.41,90.4,90.41,90.4,3.3964,1.8965
+Trigno Only - EMG + IMU Selected Features,RF,88.22,88.2,88.22,88.2,0.1947,41.546
+Trigno Only - EMG + IMU Selected Features,Logistic Regression,88.07,87.99,88.07,88.02,0.2543,1.2583
+Trigno Only - EMG + IMU Selected Features,KNN,85.05,85.37,85.05,85.11,0.002,3.3168
+Trigno Only - EMG + IMU Selected Features,AdaBoost,80.74,80.39,80.74,80.39,2.0566,8.4839
+Trigno Only - EMG + IMU Selected Features,NB,66.31,65.42,66.31,63.12,0.0,1.1956
+Trigno Only - EMG Selected Features,GB,87.24,87.22,87.24,87.23,15.5812,4.3033
+Trigno Only - EMG Selected Features,MLP,85.35,85.27,85.35,85.24,2.1097,0.9526
+Trigno Only - EMG Selected Features,SVM,85.05,85.07,85.05,85.03,1.0569,0.8379
+Trigno Only - EMG Selected Features,RF,84.37,84.27,84.37,84.28,0.1797,40.0448
+Trigno Only - EMG Selected Features,Logistic Regression,83.69,83.71,83.69,83.64,0.0394,0.7647
+Trigno Only - EMG Selected Features,KNN,81.72,81.45,81.72,81.53,0.0119,1.2682
+Trigno Only - EMG Selected Features,AdaBoost,81.12,81.14,81.12,80.95,0.6034,8.7322
+Trigno Only - EMG Selected Features,NB,67.07,65.27,67.07,62.38,0.0,1.0758
+Trigno Only - IMU Selected Features,GB,79.53,79.82,79.53,79.63,25.8782,4.4398
+Trigno Only - IMU Selected Features,MLP,76.36,76.62,76.36,76.41,3.7834,1.7031
+Trigno Only - IMU Selected Features,RF,74.55,75.85,74.55,74.7,0.1717,38.2481
+Trigno Only - IMU Selected Features,KNN,72.89,72.96,72.89,72.9,0.0,2.3934
+Trigno Only - IMU Selected Features,SVM,72.81,72.79,72.81,72.77,3.855,1.5452
+Trigno Only - IMU Selected Features,Logistic Regression,64.95,64.86,64.95,64.7,0.2251,1.1368
+Trigno Only - IMU Selected Features,AdaBoost,58.84,59.0,58.84,58.49,1.0951,10.9286
+Trigno Only - IMU Selected Features,NB,49.02,49.51,49.02,47.09,0.0097,1.0173
+Trigno Only - PCA Features,SVM,91.31,91.31,91.31,91.3,1.7324,0.2463
+Trigno Only - PCA Features,MLP,90.71,90.72,90.71,90.7,2.9469,0.2115
+Trigno Only - PCA Features,GB,89.12,89.28,89.12,89.13,43.3746,3.4298
+Trigno Only - PCA Features,KNN,87.16,87.47,87.16,87.21,0.0,0.8031
+Trigno Only - PCA Features,Logistic Regression,87.16,87.13,87.16,87.13,0.2075,0.1271
+Trigno Only - PCA Features,RF,81.5,81.96,81.5,81.65,0.1866,36.6123
+Trigno Only - PCA Features,AdaBoost,73.64,73.87,73.64,73.52,2.1468,7.6717
+Trigno Only - PCA Features,NB,65.94,66.64,65.94,65.66,0.0168,0.5339

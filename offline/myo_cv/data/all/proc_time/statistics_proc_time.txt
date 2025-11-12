@@ -1,0 +1,18 @@
+
+Statistiche per 'processing_time_ms' (Tempo tra timestamp consecutivi)
+-----------------------------------
+Cartella di origine: C:\Users\nicol\Thesis\DATA real time\_test_raw
+File processati:     63
+-----------------------------------
+
+Metriche principali (in millisecondi):
+  Media:           86.493940 ms
+  Deviazione Std:  55.818648 ms
+
+Metriche descrittive (in millisecondi):
+  Campioni totali: 103458
+  Valore Minimo:   31.000000 ms
+  25° Percentile:  68.000000 ms
+  Mediana (50°):   79.000000 ms
+  75° Percentile:  102.000000 ms
+  Valore Massimo:  4834.000000 ms

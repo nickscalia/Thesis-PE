@@ -1,0 +1,30 @@
+
+Statistiche per 'transition_time' (dove label != 0)
+---------------------------------------------------
+File 'classes_log.csv' processati: 62
+Campioni totali (con label != 0):  404
+---------------------------------------------------
+
+Conteggio campioni per soggetto (dove label != 0):
+  - S03: 35 campioni
+  - S08: 39 campioni
+  - S10: 33 campioni
+  - S12: 36 campioni
+  - S13: 36 campioni
+  - S15: 37 campioni
+  - S16: 30 campioni
+  - S17: 36 campioni
+  - S18: 31 campioni
+  - S19: 31 campioni
+  - S20: 30 campioni
+  - S21: 30 campioni
+---------------------------------------------------
+
+Metriche aggregate ('transition_time'):
+  Media:           0.493517
+  Deviazione Std:  0.128551
+  Minimo:          0.112000
+  25° Percentile:  0.443750
+  Mediana (50°):   0.527000
+  75° Percentile:  0.558250
+  Massimo:         0.935000

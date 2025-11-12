@@ -1,0 +1,33 @@
+Test Set,Model,Accuracy,Precision,Recall,F1 Score,Training Time (s),Inference Time (ms)
+Myo Only - EMG + IMU Selected Features,GB,90.81,90.8,90.81,90.8,201.1374,3.6412
+Myo Only - EMG + IMU Selected Features,SVM,86.27,86.13,86.27,86.18,177.3195,3.7475
+Myo Only - EMG + IMU Selected Features,MLP,86.18,86.12,86.18,86.01,14.9395,1.4759
+Myo Only - EMG + IMU Selected Features,RF,85.6,85.51,85.6,85.52,0.6175,27.5728
+Myo Only - EMG + IMU Selected Features,KNN,83.81,83.89,83.81,83.84,0.0116,2.9822
+Myo Only - EMG + IMU Selected Features,Logistic Regression,83.05,82.92,83.05,82.97,1.1124,1.4785
+Myo Only - EMG + IMU Selected Features,AdaBoost,77.67,78.11,77.67,77.79,11.4183,7.0043
+Myo Only - EMG + IMU Selected Features,NB,75.53,74.94,75.53,75.08,0.0274,1.3752
+Myo Only - EMG Selected Features,GB,84.96,84.93,84.96,84.94,158.7862,3.317
+Myo Only - EMG Selected Features,RF,81.69,81.41,81.69,81.5,0.4934,29.2054
+Myo Only - EMG Selected Features,MLP,81.43,81.21,81.43,81.26,17.2133,1.3129
+Myo Only - EMG Selected Features,SVM,81.2,80.9,81.2,81.02,112.7387,3.1771
+Myo Only - EMG Selected Features,Logistic Regression,78.92,78.66,78.92,78.75,0.6041,1.3223
+Myo Only - EMG Selected Features,KNN,76.51,76.18,76.51,76.32,0.0,2.366
+Myo Only - EMG Selected Features,NB,75.88,75.49,75.88,75.64,0.016,1.1389
+Myo Only - EMG Selected Features,AdaBoost,75.07,75.61,75.07,75.11,6.348,6.7082
+Myo Only - IMU Selected Features,GB,72.19,72.01,72.19,71.99,121.434,2.5912
+Myo Only - IMU Selected Features,MLP,68.03,68.02,68.03,67.95,21.6578,1.3768
+Myo Only - IMU Selected Features,RF,66.85,67.04,66.85,66.14,0.4792,30.518
+Myo Only - IMU Selected Features,KNN,63.96,64.12,63.96,64.04,0.0164,2.3473
+Myo Only - IMU Selected Features,SVM,61.66,60.85,61.66,61.04,222.9798,3.8792
+Myo Only - IMU Selected Features,Logistic Regression,49.0,47.12,49.0,47.44,0.4937,1.1992
+Myo Only - IMU Selected Features,AdaBoost,38.34,36.44,38.34,30.37,5.5734,6.6957
+Myo Only - IMU Selected Features,NB,37.9,37.77,37.9,32.66,0.038,1.0522
+Myo Only - PCA Features,SVM,90.2,90.13,90.2,90.15,118.9432,1.6737
+Myo Only - PCA Features,MLP,89.64,89.62,89.64,89.63,20.958,0.1862
+Myo Only - PCA Features,KNN,89.23,89.2,89.23,89.21,0.0105,1.3596
+Myo Only - PCA Features,GB,86.96,86.94,86.96,86.94,295.0002,1.8852
+Myo Only - PCA Features,Logistic Regression,82.84,82.74,82.84,82.79,1.4006,0.106
+Myo Only - PCA Features,RF,81.43,81.25,81.43,81.15,0.7941,33.3364
+Myo Only - PCA Features,AdaBoost,70.13,70.24,70.13,70.0,18.9976,5.9729
+Myo Only - PCA Features,NB,64.55,66.64,64.55,64.53,0.0317,0.3458
