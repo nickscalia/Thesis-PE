@@ -1,0 +1,6 @@
+Accuracy: Set 1: 92.81%
+Precision: Set 1: 92.79%
+Recall: Set 1: 92.81%
+F1: Set 1: 92.80%
+Training_time: Set 1: 3660.9574 s
+Inference_time: Set 1: 5.7048 ms
