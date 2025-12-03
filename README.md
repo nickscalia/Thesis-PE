@@ -38,7 +38,7 @@ This thesis focuses on improving payload estimation methods for back exoskeleton
 ### `online/`
 - `com_vis/`: Computer vision-based payload estimation   
   - `models/`: Trained YOLO models  
-  - `src/`: Main scripts for real-time CV estimation  
+  - `src/`: Main scripts for real-time CV estimation and sensor fusion
   - `requirements.txt`: Dependencies for virtual environment  
 
 - `myo/`: EMG and IMU-based payload estimation  
