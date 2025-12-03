@@ -126,7 +126,7 @@ def ObjectDetectionAndIsolation(frame, width):
     # Detect objects
     results1 = model(frame, stream=True, device=device, imgsz=width)
     # Define confidence thresholds for specific classes
-    conf_thresholds_model = {'box': 0.7} # can select the minimum confidence to consider the yolo detection
+    conf_thresholds_model = {'box': 0.8} # can select the minimum confidence to consider the yolo detection
     # Process results sequentially (as required)
     final_probabilities, PositionsAndDimensions = process_results(results1, classNames_model, frame, disparity_map_plasma, distance_map, f, conf_thresholds_model, width_image)
     # Print the final softmax probabilities on the image 
@@ -217,7 +217,7 @@ with NumpySocket() as s:
     print('Ready for connection. Waiting...')
 
     if video_source == "rasp":
-        url = "http://192.168.0.102:8000/"  # IP del Pi
+        url = "http://192.168.0.102:8000/" 
         cap = cv2.VideoCapture(url)
         last_frame = None
 

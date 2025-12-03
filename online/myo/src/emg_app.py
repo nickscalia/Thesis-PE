@@ -575,7 +575,7 @@ class EMGApp:
                             # If no class is validated within 0.5s from the beginning of the transition, 
                             # the most frequent class with prob >0.6 is assigned.
                             #elif elapsed > 0.5:
-                            elif elapsed > 1.5:
+                            elif elapsed > 0.5:
                                 recent_classes = all_predictions[-10:]
                                 recent_probas = all_probabilities[-10:]
 

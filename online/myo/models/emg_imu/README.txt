@@ -1,1 +1,0 @@
-8 and 12 are the number of subjects data those models are trained on
