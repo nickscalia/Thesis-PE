@@ -16,5 +16,4 @@ __pycache__/
 **/_old/
 
 # Large and private files
-dataset_*
 **/people.txt
